@@ -6,6 +6,10 @@ import { recursiveTransform, buildSolarSystem } from "./utils";
 import { CelestialBody } from "./CelestialBody";
 import AppState from "../state";
 
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
 export default function start(canvas: HTMLCanvasElement) {
   // scene
   const scene = new THREE.Scene();
@@ -16,8 +20,8 @@ export default function start(canvas: HTMLCanvasElement) {
   solarSystem.group.position.set(0, 0, 0);
 
   // light
-  const light = new THREE.PointLight("#FFFFFF", 15, 0);
-  light.decay = 0.1;
+  const light = new THREE.PointLight("#FFFFFF", 10, 0);
+  light.decay = 0.15;
   light.position.set(0, 0, 0);
   solarSystem.group.add(light);
   scene.add(solarSystem.group);
@@ -42,14 +46,19 @@ export default function start(canvas: HTMLCanvasElement) {
 
   flyControls.enabled = false;
 
-  camera.position.set(0, 100, 1000);
-  // camera.lookAt(0, 0, 0);
-  console.log(camera.position);
+  camera.position.set(0, 100, 200);
 
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    composer.setSize(window.innerWidth, window.innerHeight);
   });
 
   // renderer
@@ -79,21 +88,32 @@ export default function start(canvas: HTMLCanvasElement) {
     const radius = body.radius * AppState.get("radiusScale") + offset;
     AppState.set("focusedBody", body);
     camera.position.copy(
-      pos.clone().add(
-        new THREE.Vector3(
-          -radius,
-
-          radius,
-
-          radius,
-        ),
-      ),
+      pos.clone().add(new THREE.Vector3(-radius, radius, radius)),
     );
 
     orbitControls.target.copy(pos);
 
     orbitControls.update();
   }
+
+  const composer = new EffectComposer(renderer);
+
+  const renderPass = new RenderPass(scene, camera);
+
+  composer.addPass(renderPass);
+
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(
+      window.innerWidth,
+
+      window.innerHeight,
+    ),
+    0.075, // strength
+    1, // radius
+    0.01, // threshold
+  );
+
+  composer.addPass(bloomPass);
   function animate() {
     renderer.render(scene, camera);
     const delta = clock.getDelta();
@@ -104,20 +124,26 @@ export default function start(canvas: HTMLCanvasElement) {
     const rotationDays =
       clock.getElapsedTime() * AppState.get("simulationRotationSpeed");
 
+    // console.log(orbitDays, rotationDays);
+
     recursiveTransform(solarSystem, (body) => {
       if (body.orbitalPeriod !== null) {
-        const angle = (orbitDays / body.orbitalPeriod) * Math.PI * 2;
+        // const angle = (orbitDays / body.orbitalPeriod) * Math.PI * 2;
+        const angle = 0 * Math.PI * 2;
         const radius = body.distanceFromParent * AppState.get("distanceScale");
         body.group.position.x = Math.cos(angle) * radius;
         body.group.position.z = Math.sin(angle) * radius;
       }
+    });
+    recursiveTransform(solarSystem, (body) => {
+      body.setScale(AppState.get("radiusScale") * body.radius);
     });
 
     recursiveTransform(solarSystem, (body) => {
       const angle = (rotationDays / body.rotationPeriod) * Math.PI * 2;
       body.mesh.rotation.y = angle;
     });
-
+    composer.render();
     requestAnimationFrame(animate);
   }
   animate();
@@ -137,7 +163,7 @@ export default function start(canvas: HTMLCanvasElement) {
       });
     }
     if (e.key === "0") {
-      camera.position.set(0, 100, 1000);
+      camera.position.set(0, 100, 200);
       camera.lookAt(0, 0, 0);
       solarSystem.group.add(camera);
       AppState.set("focusedBody", null);

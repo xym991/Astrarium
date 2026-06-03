@@ -1,3 +1,4 @@
+import { defaultState, type cameraMode } from "../data";
 import type { CelestialBody } from "../engine/CelestialBody";
 
 export interface AstrariumState {
@@ -6,7 +7,7 @@ export interface AstrariumState {
   simulationRotationSpeed: number;
   radiusScale: number;
   distanceScale: number;
-  cameraMode: "overview" | "orbit" | "flight";
+  cameraMode: cameraMode;
   focusedBody: CelestialBody | null;
   showOrbitPaths: boolean;
   showTrails: boolean;
@@ -16,18 +17,7 @@ export interface AstrariumState {
 class AppState {
   private static instance: AppState;
 
-  private state: AstrariumState = {
-    simulationSpeed: 1,
-    simulationRevolutionSpeed: 10,
-    simulationRotationSpeed: 1,
-    radiusScale: 1 / 1000,
-    distanceScale: 1 / 50000,
-    cameraMode: "overview",
-    focusedBody: null,
-    showOrbitPaths: true,
-    showTrails: false,
-    showLabels: true,
-  };
+  private state: AstrariumState = defaultState;
 
   private constructor() {}
 
@@ -35,7 +25,6 @@ class AppState {
     if (!AppState.instance) {
       AppState.instance = new AppState();
     }
-
     return AppState.instance;
   }
 
@@ -43,12 +32,14 @@ class AppState {
     return this.state[key];
   }
 
-  set<K extends keyof AstrariumState>(
-    key: K,
-
-    value: AstrariumState[K],
-  ) {
+  set<K extends keyof AstrariumState>(key: K, value: AstrariumState[K]) {
+    if (this.state[key] === value) {
+      return;
+    }
     this.state[key] = value;
+  }
+  keys() {
+    return Object.keys(this.state);
   }
 }
 
