@@ -1,38 +1,60 @@
+// global camera controlling body
+// handles camera instance, input mapping , camera lookaround and movement logic
 import * as THREE from "three";
-import OverviewController from "./overview";
+import type { cameraMode } from "../../data";
+import { InputController } from "./inputController";
+import AppState from "../../state";
+import type { CelestialBody } from "../CelestialBody";
+import type { InputState } from "./inputController";
+import { OverviewController } from "./overview";
 
-export abstract class CameraController {
-  constructor(
-    protected camera: THREE.PerspectiveCamera,
-    protected canvas: HTMLCanvasElement,
-  ) {}
-
-  abstract update(delta: number): void;
-
-  abstract dispose(): void;
-}
-
-class CameraManager {
-  private static instance: CameraManager;
-  camera: THREE.PerspectiveCamera;
-  //   controller: CameraController;
-
-  static getInstance(): CameraManager {
-    if (!CameraManager.instance) {
-      CameraManager.instance = new CameraManager();
-    }
-    return CameraManager.instance;
-  }
-
-  constructor() {
+// export abstract class movementController {
+//   abstract update(
+//     delta: number,
+//     camera: THREE.PerspectiveCamera,
+//     state: typeof AppState,
+//     input:
+//   ): void;
+//   abstract destroy(): void;
+// }
+// export type ControllerContext = {
+//   input: InputState;
+//   focusedBody?: CelestialBody;
+// };
+export default class CameraController {
+  private static instance: CameraController;
+  public readonly camera: THREE.PerspectiveCamera;
+  inputController: InputController;
+  movementController: any;
+  private constructor(canvas: HTMLCanvasElement) {
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      50,
       window.innerWidth / window.innerHeight,
       0.1,
       100000000,
     );
-    // this.controller = new OverviewController(this.camera, canvas);
+    this.inputController = new InputController(canvas);
+    this.movementController = new OverviewController();
   }
-}
+  public static getInstance(canvas: HTMLCanvasElement): CameraController {
+    if (!CameraController.instance) {
+      CameraController.instance = new CameraController(canvas);
+    }
+    return CameraController.instance;
+  }
 
-export default CameraManager.getInstance();
+  public update(delta: number) {
+    this.movementController.update(
+      delta,
+      this.camera,
+      this.inputController.getState(),
+    );
+    this.inputController.endFrame();
+    this.camera.updateProjectionMatrix();
+  }
+
+  // public getCamera(): THREE.PerspectiveCamera {
+  //   // return this.camera;
+  // }
+  public setMode(mode: cameraMode) {}
+}

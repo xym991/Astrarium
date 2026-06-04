@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { CelestialBodyData } from "../data";
 import addTextures from "./utils/addTextures";
 import AppState from "../state";
+import createOrbit from "./utils/createOrbit";
+import { Line2 } from "three/addons/lines/Line2.js";
 
 export class CelestialBody extends CelestialBodyData {
   children: CelestialBody[] = [];
@@ -10,12 +12,14 @@ export class CelestialBody extends CelestialBodyData {
   material: THREE.Material;
   group: THREE.Group;
   parent: CelestialBody | null = null;
+  orbit: Line2;
 
   constructor(props: CelestialBodyData, parent: CelestialBody | null = null) {
     super(props);
     this.parent = parent;
     const [mesh, geometry, material] = createCelestialBodyMesh(this);
     this.mesh = mesh;
+    this.mesh.userData = this;
     this.geometry = geometry;
     this.material = material;
     this.group = new THREE.Group();
@@ -25,9 +29,20 @@ export class CelestialBody extends CelestialBodyData {
       0,
     );
     this.group.add(this.mesh);
+    this.orbit = createOrbit(this.color);
+    // this.orbit.rotation.z = Math.random() * 0.05;
+    if (this.parent && this.distanceFromParent > 0) {
+      this.parent.group.add(this.orbit);
+      this.orbit.userData = this;
+    }
   }
   setScale(scale: number) {
     this.mesh.scale.set(scale, scale, scale);
+    if (this.parent && this.distanceFromParent > 0) {
+      this.orbit.scale.setScalar(
+        this.distanceFromParent * AppState.get("distanceScale"),
+      );
+    }
   }
 }
 
@@ -58,9 +73,10 @@ function createCelestialBodyMesh(
     });
   }
   addTextures(body, material);
+
   const mesh = new THREE.Mesh(geometry, material);
-  const axisHelper = new THREE.AxesHelper(3);
-  mesh.add(axisHelper);
+  // const axisHelper = new THREE.AxesHelper(3);
+  // mesh.add(axisHelper);
   mesh.position.set(0, 0, 0);
   return [mesh, geometry, material];
 }
