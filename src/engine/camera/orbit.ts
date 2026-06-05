@@ -14,6 +14,8 @@ export class OrbitController {
   private maxAltitude = 10;
   private lastFocusedBody?: CelestialBody;
 
+  constructor(camera: THREE.PerspectiveCamera) {}
+
   update(delta: number, camera: THREE.PerspectiveCamera, input: InputState) {
     const focusedBody = AppState.get("focusedBody");
 

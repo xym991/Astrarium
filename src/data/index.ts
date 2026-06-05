@@ -25,7 +25,7 @@ export const RANGES: Record<NumericKeys, number[]> = {
   // radiusScale: [1, 10, 0.0001],
   // distanceScale: [1, 10, 0.000005],
   radiusScale: [1, 10, 0.000015],
-  distanceScale: [1, 10, 0.00000025],
+  distanceScale: [1, 10, 0.0000025],
 };
 
 type CelestialBodyType = "star" | "planet" | "moon";
