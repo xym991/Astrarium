@@ -7,7 +7,7 @@ import { LineGeometry } from "three/addons/lines/LineGeometry.js";
 export default function createOrbit(color: string | number = 0xffffff) {
   const curve = new THREE.EllipseCurve(0, 0, 1, 1, 0, Math.PI * 2);
 
-  const points = curve.getPoints(4096);
+  const points = curve.getPoints(4196);
 
   const positions: number[] = [];
 
@@ -20,10 +20,10 @@ export default function createOrbit(color: string | number = 0xffffff) {
   geometry.setPositions(positions);
 
   const material = new LineMaterial({
-    color: new THREE.Color(color).multiplyScalar(1.2),
-    linewidth: 1,
+    color: new THREE.Color(color).multiplyScalar(0.75),
+    linewidth: 2,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.75,
   });
 
   material.resolution.set(window.innerWidth, window.innerHeight);

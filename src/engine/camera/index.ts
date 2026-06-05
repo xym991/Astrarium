@@ -7,6 +7,7 @@ import AppState from "../../state";
 import type { CelestialBody } from "../CelestialBody";
 import type { InputState } from "./inputController";
 import { OverviewController } from "./overview";
+import { OrbitController } from "./orbit";
 
 // export abstract class movementController {
 //   abstract update(
@@ -30,11 +31,12 @@ export default class CameraController {
     this.camera = new THREE.PerspectiveCamera(
       50,
       window.innerWidth / window.innerHeight,
-      0.1,
-      100000000,
+      0.01,
+      1000000,
     );
     this.inputController = new InputController(canvas);
-    this.movementController = new OverviewController();
+    // this.movementController = new OverviewController();
+    this.movementController = new OrbitController();
   }
   public static getInstance(canvas: HTMLCanvasElement): CameraController {
     if (!CameraController.instance) {

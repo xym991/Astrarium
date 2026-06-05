@@ -24,8 +24,8 @@ export const RANGES: Record<NumericKeys, number[]> = {
   simulationRotationSpeed: [1, 10, 1],
   // radiusScale: [1, 10, 0.0001],
   // distanceScale: [1, 10, 0.000005],
-  radiusScale: [1, 10, 0.0001],
-  distanceScale: [1, 10, 0.000001],
+  radiusScale: [1, 10, 0.000015],
+  distanceScale: [1, 10, 0.00000025],
 };
 
 type CelestialBodyType = "star" | "planet" | "moon";
@@ -119,7 +119,7 @@ export const solarSystemData = new CelestialBodyData({
       distanceFromParent: 227943824,
       orbitalPeriod: 686.98,
       rotationPeriod: 1.025957,
-      color: "#D65A31",
+      color: "#ec8360",
     })
       .addChild(
         new CelestialBodyData({
@@ -152,7 +152,7 @@ export const solarSystemData = new CelestialBodyData({
       distanceFromParent: 778340821,
       orbitalPeriod: 4332.59,
       rotationPeriod: 0.41354,
-      color: "#D7B58A",
+      color: "#f1ba95",
     })
       .addChild(
         new CelestialBodyData({
@@ -361,7 +361,7 @@ export const solarSystemData = new CelestialBodyData({
       distanceFromParent: 4498396441,
       orbitalPeriod: 60182,
       rotationPeriod: 0.67125,
-      color: "#4476f3",
+      color: "#6e92ed",
     })
       .addChild(
         new CelestialBodyData({

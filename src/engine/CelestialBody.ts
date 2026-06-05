@@ -52,16 +52,16 @@ function createCelestialBodyMesh(
   const geometry = new THREE.SphereGeometry(1, 64, 64);
   let material: THREE.MeshStandardMaterial;
   if (body.name === "Sun") {
-    // material = new THREE.MeshStandardMaterial({
-    //   emissive: "#FFc496",
-
-    //   emissiveIntensity: 2,
-    // });
     material = new THREE.MeshStandardMaterial({
-      emissive: "#FFd4a6",
+      emissive: "#FFffff",
 
-      emissiveIntensity: 4,
+      emissiveIntensity: 8,
     });
+    // material = new THREE.MeshStandardMaterial({
+    //   emissive: "#FFd4a6",
+
+    //   emissiveIntensity: 4,
+    // });
     // sunMaterial.emissive.set("#ffffff");
 
     // sunMaterial.emissiveIntensity = 10;
