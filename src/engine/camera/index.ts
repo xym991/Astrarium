@@ -8,6 +8,7 @@ import type { CelestialBody } from "../CelestialBody";
 import type { InputState } from "./inputController";
 import { OverviewController } from "./overview";
 import { OrbitController } from "./orbit";
+import { FlightController } from "./flight";
 
 // export abstract class movementController {
 //   abstract update(
@@ -36,7 +37,8 @@ export default class CameraController {
     );
     this.inputController = new InputController(canvas);
     // this.movementController = new OverviewController();
-    this.movementController = new OrbitController();
+    // this.movementController = new OrbitController();
+    this.movementController = new FlightController();
   }
   public static getInstance(canvas: HTMLCanvasElement): CameraController {
     if (!CameraController.instance) {

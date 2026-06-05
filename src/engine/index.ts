@@ -82,7 +82,7 @@ export default async function start(canvas: HTMLCanvasElement) {
   solarSystem.group.add(light);
   scene.add(solarSystem.group);
 
-  const ambientLight = new THREE.AmbientLight("#ffffff", 0.2);
+  const ambientLight = new THREE.AmbientLight("#ffffff", 0.25);
   scene.add(ambientLight);
 
   // camera and controls
