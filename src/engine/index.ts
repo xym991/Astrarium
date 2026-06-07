@@ -1,7 +1,5 @@
 import * as THREE from "three";
 import { solarSystemData } from "../data";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { FlyControls } from "three/addons/controls/FlyControls.js";
 import { recursiveTransform, buildSolarSystem } from "./utils";
 import { CelestialBody } from "./CelestialBody";
 import CameraController from "./camera";
@@ -10,12 +8,9 @@ import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import { SMAAPass } from "three/addons/postprocessing/SMAAPass.js";
-import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
-import { FXAAShader } from "three/addons/shaders/FXAAShader.js";
 import { FXAAPass } from "three/examples/jsm/Addons.js";
-import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
 import LabelController from "./labels";
+import addTextures from "./utils/addTextures";
 
 export default async function start(canvas: HTMLCanvasElement) {
   // scene
@@ -61,32 +56,52 @@ export default async function start(canvas: HTMLCanvasElement) {
     return geometry;
   }
 
-  const material = new THREE.PointsMaterial({
+  const material1 = new THREE.PointsMaterial({
     size: 2,
     sizeAttenuation: false,
     vertexColors: true,
   });
 
-  const stars = new THREE.Points(createStars(20000), material);
+  const material2 = new THREE.PointsMaterial({
+    size: 1,
+    sizeAttenuation: false,
+    vertexColors: true,
+  });
+  const material3 = new THREE.PointsMaterial({
+    size: 3,
+    sizeAttenuation: false,
+    vertexColors: true,
+  });
 
+  const stars = new THREE.Points(createStars(15000), material1);
+  const stars2 = new THREE.Points(createStars(10000), material2);
+  const stars3 = new THREE.Points(createStars(500), material3);
+
+  scene.add(stars3);
   scene.add(stars);
+  scene.add(stars2);
 
   // build solar system
   const solarSystem = buildSolarSystem(solarSystemData);
   solarSystem.group.position.set(0, 0, 0);
 
+  //add textures
+  recursiveTransform(solarSystem, (body) => {
+    addTextures(body);
+  });
+
   // light
-  const light = new THREE.PointLight("#FFFFFF", 10, 0);
+  const light = new THREE.PointLight("#FFFFFF", 18, 0);
   light.decay = 0.1;
   light.position.set(0, 0, 0);
   solarSystem.group.add(light);
   scene.add(solarSystem.group);
 
-  const ambientLight = new THREE.AmbientLight("#ffffff", 0.25);
+  const ambientLight = new THREE.AmbientLight("#ffffff", 1);
   scene.add(ambientLight);
 
   // camera and controls
-  const cameraController = CameraController.getInstance(canvas);
+  const cameraController = CameraController.getInstance(canvas, solarSystem);
   const camera = cameraController.camera;
 
   camera.position.set(0, 100, 200);
@@ -145,12 +160,8 @@ export default async function start(canvas: HTMLCanvasElement) {
 
   composer.addPass(bloomPass);
 
-  const smaaPass = new SMAAPass();
-  // window.innerWidth * renderer.getPixelRatio(),
-  // window.innerHeight * renderer.getPixelRatio(),
-
-  // composer.addPass(smaaPass);
   composer.addPass(new FXAAPass());
+  renderer.toneMapping = THREE.NoToneMapping;
 
   setTimeout(() => {
     AppState.set("focusedBody", solarSystem);
@@ -219,6 +230,7 @@ export default async function start(canvas: HTMLCanvasElement) {
     recursiveTransform(solarSystem, (body) => {
       const angle = (rotationDays / body.rotationPeriod) * Math.PI * 2;
       // body.mesh.rotation.y = angle;
+      1;
     });
     stars.position.copy(camera.position);
     labelController.update(camera);
@@ -242,5 +254,17 @@ export default async function start(canvas: HTMLCanvasElement) {
     if (e.key === "0") {
       AppState.set("focusedBody", solarSystem);
     }
+    if (e.code === "KeyR") {
+      cameraController.setMode("overview");
+    }
+    if (e.code === "KeyT") {
+      cameraController.setMode("orbit");
+    }
+    if (e.code === "KeyY") {
+      cameraController.setMode("flight");
+    }
+    // if (e.code === "KeyM") {
+    //   AppState.set("paused", !AppState.get("paused"));
+    // }
   });
 }

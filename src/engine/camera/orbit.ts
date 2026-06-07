@@ -4,7 +4,8 @@ import type { CelestialBody } from "../CelestialBody";
 import type { InputState } from "./inputController";
 import AppState from "../../state";
 import { getBodyWorldPosition } from "./shared";
-export class OrbitController {
+import type { MovementController } from "./index";
+export class OrbitController implements MovementController {
   private yaw = 0;
   private pitch = THREE.MathUtils.degToRad(30);
   private offset = new THREE.Vector3();
@@ -14,7 +15,9 @@ export class OrbitController {
   private maxAltitude = 10;
   private lastFocusedBody?: CelestialBody;
 
-  constructor(camera: THREE.PerspectiveCamera) {}
+  enter(camera: THREE.PerspectiveCamera) {
+    return this;
+  }
 
   update(delta: number, camera: THREE.PerspectiveCamera, input: InputState) {
     const focusedBody = AppState.get("focusedBody");
@@ -32,14 +35,13 @@ export class OrbitController {
       this.yaw -= mouse.mouseDeltaX * this.rotationSensitivity;
       this.pitch -= mouse.mouseDeltaY * this.rotationSensitivity;
     }
+    const euler = new THREE.Euler(this.pitch, this.yaw, 0, "YXZ");
+    camera.quaternion.setFromEuler(euler);
 
     // Zoom
     if (mouse.scrollDelta !== 0) {
       this.altitude *= 1 + mouse.scrollDelta * 0.0001;
     }
-
-    const euler = new THREE.Euler(this.pitch, this.yaw, 0, "YXZ");
-    camera.quaternion.setFromEuler(euler);
 
     this.altitude = THREE.MathUtils.clamp(
       this.altitude,
@@ -47,17 +49,26 @@ export class OrbitController {
       this.maxAltitude,
     );
 
-    const localUp = this.offset.clone().normalize();
+    const backwards = this.offset.clone().normalize();
 
     const cameraRight = new THREE.Vector3(1, 0, 0).applyQuaternion(
       camera.quaternion,
     );
 
-    const right = cameraRight.projectOnPlane(localUp).normalize();
+    const cameraUp = new THREE.Vector3(0, 1, 0).applyQuaternion(
+      camera.quaternion,
+    );
+
+    const projectedRight = cameraRight.projectOnPlane(backwards).normalize();
+    const projectedUp = cameraUp.projectOnPlane(backwards).normalize();
 
     const forward = new THREE.Vector3()
-      .crossVectors(right, localUp)
+      .crossVectors(projectedRight, backwards)
       .normalize();
+    const right = new THREE.Vector3()
+      .crossVectors(projectedUp, backwards)
+      .normalize();
+
     const moveSpeed =
       (focusedBody.radius * AppState.get("radiusScale") + this.altitude) *
       delta;
@@ -85,8 +96,14 @@ export class OrbitController {
     this.altitude = radius * 0.5;
     this.minAltitude = radius * 0.2;
     this.maxAltitude = radius * 10;
-    this.offset.set(radius + this.altitude, 0, 0);
+    this.offset.set(
+      -(radius + this.altitude),
+      // radius + this.altitude,
+      0,
+      // radius + this.altitude,
+      0,
+    );
   }
 
-  destroy() {}
+  exit() {}
 }

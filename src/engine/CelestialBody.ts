@@ -72,7 +72,7 @@ function createCelestialBodyMesh(
       metalness: 0,
     });
   }
-  addTextures(body, material);
+  // addTextures(body, material);
 
   const mesh = new THREE.Mesh(geometry, material);
   // const axisHelper = new THREE.AxesHelper(3);

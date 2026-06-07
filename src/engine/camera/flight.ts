@@ -1,26 +1,33 @@
 import * as THREE from "three";
 import type { InputState } from "./inputController";
+import type { MovementController } from ".";
 
-export class FlightController {
+export class FlightController implements MovementController {
   private yaw = 0;
   private pitch = THREE.MathUtils.degToRad(30);
 
   private position = new THREE.Vector3();
   private velocity = new THREE.Vector3();
+  private readonly maxVelocity = 1000;
 
   private readonly rotationSensitivity = 0.005;
 
   private baseAcceleration = 1;
   private currentAcceleration = 1;
 
-  private currentDrag = 0.98;
-  private baseDrag = 0.85;
+  private drag = 0.9;
 
-  constructor(camera: THREE.PerspectiveCamera) {
-    // this.position.copy(camera.position);
-    // const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
-    // this.pitch = euler.x;
-    // this.yaw = euler.y;
+  private forward = new THREE.Vector3();
+  private right = new THREE.Vector3();
+  private up = new THREE.Vector3();
+
+  enter(camera: THREE.PerspectiveCamera) {
+    this.position.copy(camera.position);
+    const euler = new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ");
+    this.pitch = euler.x;
+    this.yaw = euler.y;
+
+    return this;
   }
 
   update(delta: number, camera: THREE.PerspectiveCamera, input: InputState) {
@@ -55,40 +62,43 @@ export class FlightController {
 
     camera.quaternion.setFromEuler(euler);
 
-    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(
-      camera.quaternion,
-    );
+    this.forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
 
-    const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+    this.right.set(1, 0, 0).applyQuaternion(camera.quaternion);
 
-    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+    this.up.set(0, 1, 0).applyQuaternion(camera.quaternion);
 
     const accelStep = this.currentAcceleration * delta;
 
     if (movement.forward)
-      this.velocity.add(forward.clone().multiplyScalar(accelStep));
+      this.velocity.add(this.forward.clone().multiplyScalar(accelStep));
 
     if (movement.backward)
-      this.velocity.add(forward.clone().multiplyScalar(-accelStep));
+      this.velocity.add(this.forward.clone().multiplyScalar(-accelStep));
 
     if (movement.right)
-      this.velocity.add(right.clone().multiplyScalar(accelStep));
+      this.velocity.add(this.right.clone().multiplyScalar(accelStep));
 
     if (movement.left)
-      this.velocity.add(right.clone().multiplyScalar(-accelStep));
+      this.velocity.add(this.right.clone().multiplyScalar(-accelStep));
 
-    if (movement.up) this.velocity.add(up.clone().multiplyScalar(accelStep));
+    if (movement.up)
+      this.velocity.add(this.up.clone().multiplyScalar(accelStep));
 
-    if (movement.down) this.velocity.add(up.clone().multiplyScalar(-accelStep));
+    if (movement.down)
+      this.velocity.add(this.up.clone().multiplyScalar(-accelStep));
 
-    this.currentDrag = Math.min(this.baseDrag + this.currentDrag * delta, 0.99);
+    this.velocity.multiplyScalar(Math.pow(this.drag, delta * 60));
 
-    this.velocity.multiplyScalar(Math.pow(this.currentDrag, delta * 60));
+    if (this.velocity.length() < 0.01) {
+      this.velocity.set(0, 0, 0);
+    } else if (this.velocity.lengthSq() > this.maxVelocity * this.maxVelocity) {
+      this.velocity.setLength(this.maxVelocity);
+    }
 
     this.position.add(this.velocity.clone().multiplyScalar(delta));
-
     camera.position.copy(this.position);
   }
 
-  destroy() {}
+  exit() {}
 }

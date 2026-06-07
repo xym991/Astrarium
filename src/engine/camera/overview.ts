@@ -1,41 +1,55 @@
-// import type { ControllerContext } from "./index";
 import * as THREE from "three";
 import type { CelestialBody } from "../CelestialBody";
 import type { InputState } from "./inputController";
 import AppState from "../../state";
-import {
-  getBodyWorldPosition,
-  getDefaultViewingDistance,
-  sphericalToCartesian,
-} from "./shared";
-export class OverviewController {
-  private yaw = 0;
-  private pitch = THREE.MathUtils.degToRad(20);
+import { getBodyWorldPosition, getDefaultViewingDistance } from "./shared";
+import type { MovementController } from ".";
+
+export class OverviewController implements MovementController {
+  private offset = new THREE.Vector3();
+  private orientation = new THREE.Quaternion();
+
   private distance = 10;
+
   private readonly rotationSensitivity = 0.005;
-  private readonly minDistance = 2;
-  private readonly maxDistance = 100000;
+  private minDistance = 2;
+  private maxDistance = 300000;
+
   private lastFocusedBody?: CelestialBody;
+
+  enter(camera: THREE.PerspectiveCamera, focusedBody?: CelestialBody) {
+    return this;
+  }
 
   update(delta: number, camera: THREE.PerspectiveCamera, input: InputState) {
     const focusedBody = AppState.get("focusedBody");
 
     if (!focusedBody) return;
+
     if (focusedBody !== this.lastFocusedBody) {
       this.onTargetChanged(focusedBody);
       this.lastFocusedBody = focusedBody;
     }
 
     const mouse = input.mouse;
-    // console.log(mouse);
 
-    // Rotation
     if (mouse.primaryMouse) {
-      this.yaw -= mouse.mouseDeltaX * this.rotationSensitivity;
-      this.pitch -= mouse.mouseDeltaY * this.rotationSensitivity;
+      const yawQuat = new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(0, 1, 0),
+        -mouse.mouseDeltaX * this.rotationSensitivity,
+      );
+
+      const pitchQuat = new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(1, 0, 0),
+        -mouse.mouseDeltaY * this.rotationSensitivity,
+      );
+
+      this.orientation.multiply(yawQuat);
+      this.orientation.multiply(pitchQuat);
+
+      this.orientation.normalize();
     }
 
-    // Zoom
     if (mouse.scrollDelta !== 0) {
       this.distance *= 1 + mouse.scrollDelta * 0.001;
     }
@@ -46,19 +60,36 @@ export class OverviewController {
       this.maxDistance,
     );
 
-    // Target position
+    this.offset.set(0, 0, this.distance).applyQuaternion(this.orientation);
+
     const target = getBodyWorldPosition(focusedBody);
 
-    // Spherical -> Cartesian
-    const [x, y, z] = sphericalToCartesian(this.distance, this.yaw, this.pitch);
+    camera.position.copy(target).add(this.offset);
 
-    camera.position.set(target.x + x, target.y + y, target.z + z);
+    camera.quaternion.copy(this.orientation);
 
-    camera.lookAt(target);
+    // camera.rotateZ(Math.PI / 4);
   }
+
   private onTargetChanged(body: CelestialBody) {
-    this.distance = getDefaultViewingDistance(body);
+    this.orientation.identity();
+
+    this.minDistance = body.radius * AppState.get("radiusScale") * 1.5;
+
+    this.distance = body.radius * AppState.get("radiusScale") * 3;
+
+    // this.maxDistance = body.radius * AppState.get("radiusScale") * 1000;
+
+    this.orientation.multiply(
+      new THREE.Quaternion().setFromEuler(
+        new THREE.Euler(
+          THREE.MathUtils.degToRad(0),
+          THREE.MathUtils.degToRad(-90),
+          0,
+        ),
+      ),
+    );
   }
 
-  destroy() {}
+  exit() {}
 }

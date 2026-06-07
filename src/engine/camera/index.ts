@@ -1,5 +1,3 @@
-// global camera controlling body
-// handles camera instance, input mapping , camera lookaround and movement logic
 import * as THREE from "three";
 import type { cameraMode } from "../../data";
 import { InputController } from "./inputController";
@@ -10,25 +8,28 @@ import { OverviewController } from "./overview";
 import { OrbitController } from "./orbit";
 import { FlightController } from "./flight";
 
-// export abstract class movementController {
-//   abstract update(
-//     delta: number,
-//     camera: THREE.PerspectiveCamera,
-//     state: typeof AppState,
-//     input:
-//   ): void;
-//   abstract destroy(): void;
-// }
-// export type ControllerContext = {
-//   input: InputState;
-//   focusedBody?: CelestialBody;
-// };
+export interface MovementController {
+  enter(camera?: THREE.PerspectiveCamera): MovementController;
+
+  update(
+    delta: number,
+    camera: THREE.PerspectiveCamera,
+    input: InputState,
+  ): void;
+
+  exit(): void;
+}
 export default class CameraController {
   private static instance: CameraController;
   public readonly camera: THREE.PerspectiveCamera;
-  inputController: InputController;
-  movementController: any;
-  private constructor(canvas: HTMLCanvasElement) {
+
+  public mode = "overview";
+  public defaultTarget: CelestialBody;
+
+  private inputController: InputController;
+  private movementController: MovementController;
+
+  private constructor(canvas: HTMLCanvasElement, defaultTarget: CelestialBody) {
     this.camera = new THREE.PerspectiveCamera(
       50,
       window.innerWidth / window.innerHeight,
@@ -36,14 +37,17 @@ export default class CameraController {
       1000000,
     );
     this.inputController = new InputController(canvas);
-    // this.movementController = new OverviewController();
-    // this.movementController = new OrbitController();
-    this.movementController = new FlightController();
+    this.movementController = new OverviewController();
+    this.defaultTarget = defaultTarget;
   }
-  public static getInstance(canvas: HTMLCanvasElement): CameraController {
+  public static getInstance(
+    canvas: HTMLCanvasElement,
+    defaultTarget: CelestialBody,
+  ): CameraController {
     if (!CameraController.instance) {
-      CameraController.instance = new CameraController(canvas);
+      CameraController.instance = new CameraController(canvas, defaultTarget);
     }
+
     return CameraController.instance;
   }
 
@@ -57,8 +61,26 @@ export default class CameraController {
     this.camera.updateProjectionMatrix();
   }
 
-  // public getCamera(): THREE.PerspectiveCamera {
-  //   // return this.camera;
-  // }
-  public setMode(mode: cameraMode) {}
+  public getCamera(): THREE.PerspectiveCamera {
+    return this.camera;
+  }
+  public setMode(mode: cameraMode) {
+    if (mode === this.mode) return;
+    else this.mode = mode;
+    this.movementController.exit();
+    if (!AppState.get("focusedBody"))
+      AppState.set("focusedBody", this.defaultTarget);
+    switch (this.mode) {
+      case "overview":
+        this.movementController = new OverviewController().enter(this.camera);
+        break;
+      case "orbit":
+        this.movementController = new OrbitController().enter(this.camera);
+        break;
+      case "flight":
+        this.movementController = new FlightController().enter(this.camera);
+        AppState.set("focusedBody", null);
+        break;
+    }
+  }
 }
