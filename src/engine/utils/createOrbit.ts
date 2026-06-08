@@ -20,10 +20,10 @@ export default function createOrbit(color: string | number = 0xffffff) {
   geometry.setPositions(positions);
 
   const material = new LineMaterial({
-    color: new THREE.Color(color).multiplyScalar(1),
+    color: new THREE.Color(color).multiplyScalar(1.5),
     linewidth: 2,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.25,
   });
 
   material.resolution.set(window.innerWidth, window.innerHeight);

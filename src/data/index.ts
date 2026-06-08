@@ -20,7 +20,7 @@ export type NumericKeys = {
 
 export const RANGES: Record<NumericKeys, number[]> = {
   simulationSpeed: [0.1, 10, 1],
-  simulationRevolutionSpeed: [10, 100, 1],
+  simulationRevolutionSpeed: [50, 500, 1],
   simulationRotationSpeed: [1, 10, 1],
   // radiusScale: [1, 10, 0.0001],
   // distanceScale: [1, 10, 0.000005],

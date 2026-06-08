@@ -203,7 +203,20 @@ export default async function start(canvas: HTMLCanvasElement) {
     // console.log(hits);
   });
 
+  recursiveTransform(solarSystem, (body) => {
+    if (body.trail?.line) {
+      scene.add(body.trail.line);
+      console.log(body, body.trail);
+    }
+  });
+
   /////////////
+
+  const solarSystemVelocity = new THREE.Vector3(
+    0,
+    50 * AppState.get("simulationRevolutionSpeed"),
+    0,
+  );
   function animate() {
     const delta = clock.getDelta();
 
@@ -211,13 +224,24 @@ export default async function start(canvas: HTMLCanvasElement) {
       clock.getElapsedTime() * AppState.get("simulationRevolutionSpeed");
     const rotationDays =
       clock.getElapsedTime() * AppState.get("simulationRotationSpeed");
+    const sunVelocity = 220; // km/s
+
+    // const simulatedSeconds =
+    //   delta * AppState.get("simulationRevolutionSpeed") * 86400;
+
+    // solarSystem.group.position.addScaledVector(
+    //   solarSystemVelocity,
+    //   sunVelocity * simulatedSeconds * AppState.get("distanceScale"),
+    // );
+
+    solarSystem.group.position.addScaledVector(solarSystemVelocity, delta);
 
     // const distance = camera.position.distanceTo(solarSystem.group.position);
 
     recursiveTransform(solarSystem, (body) => {
       if (body.orbitalPeriod !== null) {
-        // const angle = (orbitDays / body.orbitalPeriod) * Math.PI * 2;
-        const angle = 0 * Math.PI * 2;
+        const angle = (orbitDays / body.orbitalPeriod) * Math.PI * 2;
+        // const angle = 0 * Math.PI * 2;
         const radius = body.distanceFromParent * AppState.get("distanceScale");
         body.group.position.x = Math.cos(angle) * radius;
         body.group.position.z = Math.sin(angle) * radius;
@@ -225,6 +249,9 @@ export default async function start(canvas: HTMLCanvasElement) {
     });
     recursiveTransform(solarSystem, (body) => {
       body.setScale(AppState.get("radiusScale") * body.radius);
+    });
+    recursiveTransform(solarSystem, (body) => {
+      body.updateTrail();
     });
 
     recursiveTransform(solarSystem, (body) => {

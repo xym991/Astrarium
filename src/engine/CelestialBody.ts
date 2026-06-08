@@ -4,6 +4,9 @@ import addTextures from "./utils/addTextures";
 import AppState from "../state";
 import createOrbit from "./utils/createOrbit";
 import { Line2 } from "three/addons/lines/Line2.js";
+import createTrail, { type Trail } from "./utils/createTrail";
+
+const solarDrift = new THREE.Vector3(10, 0, 0);
 
 export class CelestialBody extends CelestialBodyData {
   children: CelestialBody[] = [];
@@ -13,7 +16,7 @@ export class CelestialBody extends CelestialBodyData {
   group: THREE.Group;
   parent: CelestialBody | null = null;
   orbit: Line2;
-
+  trail?: Trail;
   constructor(props: CelestialBodyData, parent: CelestialBody | null = null) {
     super(props);
     this.parent = parent;
@@ -35,6 +38,12 @@ export class CelestialBody extends CelestialBodyData {
       this.parent.group.add(this.orbit);
       this.orbit.userData = this;
     }
+
+    if (this.type !== "moon")
+      this.trail = createTrail(
+        250 + Math.floor(this.distanceFromParent / 10 ** 6),
+      );
+    // this.trail = createTrail(1000);
   }
   setScale(scale: number) {
     this.mesh.scale.set(scale, scale, scale);
@@ -43,6 +52,28 @@ export class CelestialBody extends CelestialBodyData {
         this.distanceFromParent * AppState.get("distanceScale"),
       );
     }
+  }
+  updateTrail() {
+    if (!this.trail) return;
+    const pos = this.group.getWorldPosition(new THREE.Vector3());
+    let i = this.trail.index * 3;
+    let _i = (this.trail.index - this.trail.length) * 3;
+    this.trail.points[i] = pos.x;
+    this.trail.points[i + 1] = pos.y;
+    this.trail.points[i + 2] = pos.z;
+    this.trail.points[_i] = pos.x;
+    this.trail.points[_i + 1] = pos.y;
+    this.trail.points[_i + 2] = pos.z;
+
+    this.trail.line.geometry.setDrawRange(
+      this.trail.index - this.trail.length + 1,
+      this.trail.length,
+    );
+
+    this.trail.line.geometry.attributes.position.needsUpdate = true;
+    this.trail.index++;
+    if (this.trail.index >= this.trail.length * 2)
+      this.trail.index = this.trail.length;
   }
 }
 
