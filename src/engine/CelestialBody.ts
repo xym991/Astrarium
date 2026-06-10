@@ -6,8 +6,6 @@ import createOrbit from "./utils/createOrbit";
 import { Line2 } from "three/addons/lines/Line2.js";
 import createTrail, { type Trail } from "./utils/createTrail";
 
-const solarDrift = new THREE.Vector3(10, 0, 0);
-
 export class CelestialBody extends CelestialBodyData {
   children: CelestialBody[] = [];
   mesh: THREE.Mesh;
@@ -17,10 +15,11 @@ export class CelestialBody extends CelestialBodyData {
   parent: CelestialBody | null = null;
   orbit: Line2;
   trail?: Trail;
+  private tempVector = new THREE.Vector3();
   constructor(props: CelestialBodyData, parent: CelestialBody | null = null) {
     super(props);
     this.parent = parent;
-    const [mesh, geometry, material] = createCelestialBodyMesh(this);
+    const [mesh, geometry, material] = this.createCelestialBodyMesh();
     this.mesh = mesh;
     this.mesh.userData = this;
     this.geometry = geometry;
@@ -33,29 +32,27 @@ export class CelestialBody extends CelestialBodyData {
     );
     this.group.add(this.mesh);
     this.orbit = createOrbit(this.color);
-    // this.orbit.rotation.z = Math.random() * 0.05;
     if (this.parent && this.distanceFromParent > 0) {
       this.parent.group.add(this.orbit);
       this.orbit.userData = this;
     }
 
-    if (this.type !== "moon")
-      this.trail = createTrail(
-        250 + Math.floor(this.distanceFromParent / 10 ** 6),
-      );
-    // this.trail = createTrail(1000);
+    // if (this.type !== "moon") this.trail = createTrail(5000);
+    this.trail = createTrail(5000);
   }
-  setScale(scale: number) {
+  setBodyScale(radiusScale: number) {
+    let scale = radiusScale * this.radius;
     this.mesh.scale.set(scale, scale, scale);
+  }
+  setOrbitScale(distanceScale: number) {
     if (this.parent && this.distanceFromParent > 0) {
-      this.orbit.scale.setScalar(
-        this.distanceFromParent * AppState.get("distanceScale"),
-      );
+      this.orbit.scale.setScalar(this.distanceFromParent * distanceScale);
     }
   }
-  updateTrail() {
+
+  updateTrail(camera: THREE.PerspectiveCamera) {
     if (!this.trail) return;
-    const pos = this.group.getWorldPosition(new THREE.Vector3());
+    const pos = this.group.getWorldPosition(this.tempVector);
     let i = this.trail.index * 3;
     let _i = (this.trail.index - this.trail.length) * 3;
     this.trail.points[i] = pos.x;
@@ -65,49 +62,57 @@ export class CelestialBody extends CelestialBodyData {
     this.trail.points[_i + 1] = pos.y;
     this.trail.points[_i + 2] = pos.z;
 
+    if (this.trail.count < this.trail.length) this.trail.count++;
+
     this.trail.line.geometry.setDrawRange(
-      this.trail.index - this.trail.length + 1,
-      this.trail.length,
+      this.trail.index - this.trail.count + 11,
+      (this.trail.count || 10) - 10,
     );
 
     this.trail.line.geometry.attributes.position.needsUpdate = true;
     this.trail.index++;
     if (this.trail.index >= this.trail.length * 2)
       this.trail.index = this.trail.length;
+    if (this.type === "moon") {
+      this.trail.line.visible = this.shouldShowTrail(camera);
+    }
   }
-}
 
-function createCelestialBodyMesh(
-  body: CelestialBodyData,
-): [THREE.Mesh, THREE.BufferGeometry, THREE.Material] {
-  const geometry = new THREE.SphereGeometry(1, 64, 64);
-  let material: THREE.MeshStandardMaterial;
-  if (body.name === "Sun") {
-    material = new THREE.MeshStandardMaterial({
-      emissive: "#FFffff",
-
-      emissiveIntensity: 8,
-    });
-    // material = new THREE.MeshStandardMaterial({
-    //   emissive: "#FFd4a6",
-
-    //   emissiveIntensity: 4,
-    // });
-    // sunMaterial.emissive.set("#ffffff");
-
-    // sunMaterial.emissiveIntensity = 10;
-  } else {
-    material = new THREE.MeshStandardMaterial({
-      color: body.color || "#FFFFFF",
-      roughness: 1,
-      metalness: 0,
-    });
+  resetTrail() {
+    if (!this.trail) return;
+    this.trail.count = 0;
   }
-  // addTextures(body, material);
 
-  const mesh = new THREE.Mesh(geometry, material);
-  // const axisHelper = new THREE.AxesHelper(3);
-  // mesh.add(axisHelper);
-  mesh.position.set(0, 0, 0);
-  return [mesh, geometry, material];
+  private shouldShowTrail(camera: THREE.PerspectiveCamera) {
+    const distance = camera.position.distanceTo(
+      this.mesh.getWorldPosition(this.tempVector),
+    );
+    return distance < this.distanceFromParent / 10 ** 4;
+  }
+
+  private createCelestialBodyMesh(): [
+    THREE.Mesh,
+    THREE.BufferGeometry,
+    THREE.Material,
+  ] {
+    const geometry = new THREE.SphereGeometry(1, 64, 64);
+    let material: THREE.MeshStandardMaterial;
+    if (this.name === "Sun") {
+      material = new THREE.MeshStandardMaterial({
+        emissive: "#FFffff",
+
+        emissiveIntensity: 8,
+      });
+    } else {
+      material = new THREE.MeshStandardMaterial({
+        color: this.color || "#FFFFFF",
+        roughness: 1,
+        metalness: 0,
+      });
+    }
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0, 0, 0);
+    return [mesh, geometry, material];
+  }
 }

@@ -11,6 +11,7 @@ export const defaultState: AstrariumState = {
   showOrbitPaths: true,
   showTrails: false,
   showLabels: true,
+  paused: false,
 };
 
 export type cameraMode = "overview" | "orbit" | "flight";

@@ -39,6 +39,7 @@ export default class CameraController {
     this.inputController = new InputController(canvas);
     this.movementController = new OverviewController();
     this.defaultTarget = defaultTarget;
+    this.camera.position.set(0, 100, 200);
   }
   public static getInstance(
     canvas: HTMLCanvasElement,

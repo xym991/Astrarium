@@ -8,6 +8,7 @@ export type Trail = {
   points: Float32Array;
   index: number;
   length: number;
+  count: number;
 };
 
 export default function createTrail(length: number): Trail {
@@ -26,5 +27,6 @@ export default function createTrail(length: number): Trail {
     points: buffer,
     index: length,
     length: length,
+    count: 0,
   };
 }

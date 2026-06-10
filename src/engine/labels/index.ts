@@ -1,22 +1,26 @@
 import * as THREE from "three";
 import { CelestialBody } from "../CelestialBody";
 import AppState from "../../state";
-
-function shouldShowLabel(body: CelestialBody, cameraDistance: number) {
-  if (body.type === "star") return true;
-  const orbitRadius = body.distanceFromParent * AppState.get("distanceScale");
-  return (
-    cameraDistance < orbitRadius * 20 && cameraDistance > orbitRadius * 0.05
-  );
-}
+import { recursiveTransform } from "../utils";
 
 export default class LabelController {
+  private static instance: LabelController;
   private container: HTMLDivElement;
   private labels = new Map<CelestialBody, HTMLDivElement>();
   private temp = new THREE.Vector3();
 
   constructor(container: HTMLDivElement) {
     this.container = container;
+  }
+
+  static getInstance(container: HTMLDivElement, solarSystem: CelestialBody) {
+    if (!LabelController.instance) {
+      LabelController.instance = new LabelController(container);
+      recursiveTransform(solarSystem, (body) => {
+        this.instance.addBody(body);
+      });
+    }
+    return LabelController.instance;
   }
 
   addBody(body: CelestialBody) {
@@ -33,11 +37,9 @@ export default class LabelController {
   update(camera: THREE.Camera) {
     this.labels.forEach((label, body) => {
       body.mesh.getWorldPosition(this.temp);
-      const orbitRadius =
-        body.distanceFromParent * AppState.get("distanceScale");
       const cameraDistance = camera.position.distanceTo(this.temp);
 
-      if (!shouldShowLabel(body, cameraDistance)) {
+      if (!this.shouldShowLabel(body, cameraDistance)) {
         label.style.display = "none";
         return;
       }
@@ -59,6 +61,14 @@ export default class LabelController {
         (body.radius * AppState.get("radiusScale") * 0.1 + 20);
       label.style.transform = `translate(${x}px, ${y}px)`;
     });
+  }
+
+  shouldShowLabel(body: CelestialBody, cameraDistance: number) {
+    if (body.type === "star") return true;
+    const orbitRadius = body.distanceFromParent * AppState.get("distanceScale");
+    return (
+      cameraDistance < orbitRadius * 20 && cameraDistance > orbitRadius * 0.05
+    );
   }
 
   destroy() {
