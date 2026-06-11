@@ -12,9 +12,10 @@ export class CelestialBody extends CelestialBodyData {
   geometry: THREE.BufferGeometry;
   material: THREE.Material;
   group: THREE.Group;
+  tiltGroup: THREE.Group;
   parent: CelestialBody | null = null;
   orbit: Line2;
-  trail?: Trail;
+  trail: Trail | null;
   private tempVector = new THREE.Vector3();
   constructor(props: CelestialBodyData, parent: CelestialBody | null = null) {
     super(props);
@@ -25,28 +26,47 @@ export class CelestialBody extends CelestialBodyData {
     this.geometry = geometry;
     this.material = material;
     this.group = new THREE.Group();
+    this.tiltGroup = new THREE.Group();
     this.group.position.set(
-      this.distanceFromParent * AppState.get("distanceScale"),
+      this.semiMajorAxis * AppState.get("distanceScale"),
       0,
       0,
     );
-    this.group.add(this.mesh);
-    this.orbit = createOrbit(this.color);
-    if (this.parent && this.distanceFromParent > 0) {
+    this.tiltGroup.rotation.z = THREE.MathUtils.degToRad(this.axisTilt);
+    this.tiltGroup.add(this.mesh);
+    this.group.add(this.tiltGroup);
+    this.orbit = createOrbit(
+      this.eccentricity,
+      this.orbitalTilt,
+      this.type === "planet" ? this.color : 0x999999,
+    );
+    if (this.parent && this.semiMajorAxis > 0) {
       this.parent.group.add(this.orbit);
       this.orbit.userData = this;
     }
 
     // if (this.type !== "moon") this.trail = createTrail(5000);
-    this.trail = createTrail(5000);
+
+    this.trail = createTrail(
+      this.type === "moon"
+        ? 2000
+        : this.type === "planet"
+          ? 10000
+          : this.type === "star"
+            ? 30000
+            : this.type === "dwarf"
+              ? 6000
+              : 0,
+    );
+    // this.trail.line.frustumCulled = false;
   }
   setBodyScale(radiusScale: number) {
     let scale = radiusScale * this.radius;
     this.mesh.scale.set(scale, scale, scale);
   }
   setOrbitScale(distanceScale: number) {
-    if (this.parent && this.distanceFromParent > 0) {
-      this.orbit.scale.setScalar(this.distanceFromParent * distanceScale);
+    if (this.parent && this.semiMajorAxis > 0) {
+      this.orbit.scale.setScalar(this.semiMajorAxis * distanceScale);
     }
   }
 
@@ -87,7 +107,7 @@ export class CelestialBody extends CelestialBodyData {
     const distance = camera.position.distanceTo(
       this.mesh.getWorldPosition(this.tempVector),
     );
-    return distance < this.distanceFromParent / 10 ** 4;
+    return distance < this.semiMajorAxis / (10 ** 3 * 5);
   }
 
   private createCelestialBodyMesh(): [

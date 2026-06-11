@@ -74,7 +74,10 @@ export class OverviewController implements MovementController {
   private onTargetChanged(body: CelestialBody) {
     this.orientation.identity();
 
-    this.minDistance = body.radius * AppState.get("radiusScale") * 1.5;
+    this.minDistance = Math.max(
+      body.radius * AppState.get("radiusScale") * 1.5,
+      0.1,
+    );
 
     this.distance = body.radius * AppState.get("radiusScale") * 3;
 

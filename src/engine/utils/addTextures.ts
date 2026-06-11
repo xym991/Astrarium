@@ -15,8 +15,8 @@ export default function addTextures(body: CelestialBody) {
       material.color = material.color.multiplyScalar(0.5);
       if (body.type === "star") {
         material.emissiveMap = texture;
-        material.needsUpdate = true;
       }
+      material.needsUpdate = true;
     },
     undefined,
     () => {

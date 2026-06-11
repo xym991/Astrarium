@@ -65,7 +65,7 @@ export default class LabelController {
 
   shouldShowLabel(body: CelestialBody, cameraDistance: number) {
     if (body.type === "star") return true;
-    const orbitRadius = body.distanceFromParent * AppState.get("distanceScale");
+    const orbitRadius = body.semiMajorAxis * AppState.get("distanceScale");
     return (
       cameraDistance < orbitRadius * 20 && cameraDistance > orbitRadius * 0.05
     );

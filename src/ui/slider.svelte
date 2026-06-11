@@ -13,7 +13,6 @@
   $effect(() => {
     AppState.set(key, value * RANGES[key][2]);
   });
-  console.log(key, value * RANGES[key][2]);
 </script>
 
 <div>

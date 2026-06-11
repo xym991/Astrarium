@@ -3,24 +3,38 @@ import * as THREE from "three";
 import { Line2 } from "three/addons/lines/Line2.js";
 import { LineMaterial } from "three/addons/lines/LineMaterial.js";
 import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+export default function createOrbit(
+  eccentricity: number,
+  orbitalTilt: number,
+  color?: number | string,
+) {
+  if (!color) color = 0xaaaaaa;
 
-export default function createOrbit(color: string | number = 0xffffff) {
-  const curve = new THREE.EllipseCurve(0, 0, 1, 1, 0, Math.PI * 2);
-
-  const points = curve.getPoints(4196);
-
+  const tilt = THREE.MathUtils.degToRad(orbitalTilt);
   const positions: number[] = [];
 
-  for (const p of points) {
-    positions.push(p.x, 0, p.y);
+  const a = 1;
+  const e = eccentricity;
+  const b = a * Math.sqrt(1 - e * e);
+
+  for (let i = 0; i <= 8192; i++) {
+    const E = (i / 8192) * Math.PI * 2;
+
+    const x = a * (Math.cos(E) - e);
+
+    let z = b * Math.sin(E);
+
+    const y = -z * Math.sin(tilt);
+    z = z * Math.cos(tilt);
+
+    positions.push(x, y, z);
   }
 
   const geometry = new LineGeometry();
-
   geometry.setPositions(positions);
 
   const material = new LineMaterial({
-    color: new THREE.Color(color).multiplyScalar(1.5),
+    color: new THREE.Color(color).multiplyScalar(2),
     linewidth: 2,
     transparent: true,
     opacity: 0.25,
@@ -29,8 +43,7 @@ export default function createOrbit(color: string | number = 0xffffff) {
   material.resolution.set(window.innerWidth, window.innerHeight);
 
   const orbit = new Line2(geometry, material);
-
   orbit.computeLineDistances();
-
+  // orbit.visible = false;
   return orbit;
 }

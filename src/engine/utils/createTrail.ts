@@ -11,7 +11,8 @@ export type Trail = {
   count: number;
 };
 
-export default function createTrail(length: number): Trail {
+export default function createTrail(length: number): Trail | null {
+  if (!length) return null;
   let geometry = new THREE.BufferGeometry();
   let buffer = new Float32Array(length * 3 * 2);
   geometry.setAttribute(
@@ -19,14 +20,16 @@ export default function createTrail(length: number): Trail {
     new THREE.BufferAttribute(buffer, 3).setUsage(THREE.DynamicDrawUsage),
   );
   const color = new THREE.Color(0xffffff);
+  const line = new THREE.Line(
+    geometry,
+    new THREE.LineBasicMaterial({ color: color.multiplyScalar(1.5) }),
+  );
+  line.frustumCulled = false;
   return {
-    line: new THREE.Line(
-      geometry,
-      new THREE.LineBasicMaterial({ color: color.multiplyScalar(2) }),
-    ),
+    line,
     points: buffer,
     index: length,
-    length: length,
+    length,
     count: 0,
   };
 }

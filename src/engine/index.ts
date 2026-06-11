@@ -12,6 +12,7 @@ import { FXAAPass } from "three/examples/jsm/Addons.js";
 import LabelController from "./labels";
 import addTextures from "./utils/addTextures";
 import listMeshes from "./utils/listMeshes";
+import guessOrbitE from "./utils/guessOrbitE";
 
 let globalTime = 0;
 const solarSystemVelocity = new THREE.Vector3(0, 500, 0);
@@ -157,11 +158,28 @@ export default async function start(canvas: HTMLCanvasElement) {
 
       // revolution
       if (body.orbitalPeriod !== null) {
-        const angle = (orbitDays / body.orbitalPeriod) * Math.PI * 2;
-        // const angle = 0 * Math.PI * 2;
-        const radius = body.distanceFromParent * distanceScale;
-        body.group.position.x = Math.cos(angle) * radius;
-        body.group.position.z = Math.sin(angle) * radius;
+        const M =
+          ((orbitDays % body.orbitalPeriod) / body.orbitalPeriod) * Math.PI * 2;
+
+        const E = guessOrbitE(M, body.eccentricity);
+
+        let x =
+          body.semiMajorAxis *
+          distanceScale *
+          (Math.cos(E) - body.eccentricity);
+
+        let z =
+          body.semiMajorAxis *
+          distanceScale *
+          Math.sqrt(1 - body.eccentricity * body.eccentricity) *
+          Math.sin(E);
+
+        const i = THREE.MathUtils.degToRad(body.orbitalTilt);
+
+        const y = -z * Math.sin(i);
+        z = z * Math.cos(i);
+
+        body.group.position.set(x, y, z);
       }
 
       //trails
@@ -208,6 +226,7 @@ export default async function start(canvas: HTMLCanvasElement) {
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     composer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
     recursiveTransform(solarSystem, (body) => {
       if (body.orbit?.material instanceof LineMaterial) {
