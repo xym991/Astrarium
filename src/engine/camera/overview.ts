@@ -13,7 +13,7 @@ export class OverviewController implements MovementController {
 
   private readonly rotationSensitivity = 0.005;
   private minDistance = 2;
-  private maxDistance = 300000;
+  private maxDistance = 5000000;
 
   private lastFocusedBody?: CelestialBody;
 
@@ -65,21 +65,43 @@ export class OverviewController implements MovementController {
     const target = getBodyWorldPosition(focusedBody);
 
     camera.position.copy(target).add(this.offset);
-
     camera.quaternion.copy(this.orientation);
-
-    // camera.rotateZ(Math.PI / 4);
   }
 
   private onTargetChanged(body: CelestialBody) {
     this.orientation.identity();
 
     this.minDistance = Math.max(
-      body.radius * AppState.get("radiusScale") * 1.5,
-      0.1,
+      body.radius * AppState.get("radiusScale") * 1.2,
+      0.01,
     );
+    const radius = body.radius * AppState.get("radiusScale");
 
-    this.distance = body.radius * AppState.get("radiusScale") * 3;
+    this.distance = radius * 5;
+    if (body.name == "Sun") {
+      if (!this.lastFocusedBody) this.distance = radius * 500;
+      else this.distance = radius * 50;
+
+      this.orientation.setFromEuler(
+        new THREE.Euler(
+          THREE.MathUtils.degToRad(60), // pitch down
+
+          THREE.MathUtils.degToRad(-75), // rotate around system
+
+          0,
+        ),
+      );
+    } else {
+      this.orientation.setFromEuler(
+        new THREE.Euler(
+          0,
+
+          THREE.MathUtils.degToRad(-90),
+
+          0,
+        ),
+      );
+    }
 
     // this.maxDistance = body.radius * AppState.get("radiusScale") * 1000;
 

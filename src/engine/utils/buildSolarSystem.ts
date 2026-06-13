@@ -7,9 +7,7 @@ export default function buildSolarSystem(
 ): CelestialBody {
   const body = new CelestialBody(data, parent);
   for (const childData of data.children) {
-    const childBody = buildSolarSystem(childData, body);
-    body.children.push(childBody);
-    body.group.add(childBody.group);
+    buildSolarSystem(childData, body);
   }
   return body;
 }

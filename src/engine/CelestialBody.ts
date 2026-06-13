@@ -7,12 +7,17 @@ import { Line2 } from "three/addons/lines/Line2.js";
 import createTrail, { type Trail } from "./utils/createTrail";
 
 export class CelestialBody extends CelestialBodyData {
+  private static sphereGeometry = new THREE.SphereGeometry(1, 64, 64);
   children: CelestialBody[] = [];
   mesh: THREE.Mesh;
   geometry: THREE.BufferGeometry;
   material: THREE.Material;
+
+  orbitalPlaneGroup: THREE.Group;
+  orbitalGroup: THREE.Group;
   group: THREE.Group;
   tiltGroup: THREE.Group;
+
   parent: CelestialBody | null = null;
   orbit: Line2;
   trail: Trail | null;
@@ -23,29 +28,47 @@ export class CelestialBody extends CelestialBodyData {
     const [mesh, geometry, material] = this.createCelestialBodyMesh();
     this.mesh = mesh;
     this.mesh.userData = this;
+
     this.geometry = geometry;
     this.material = material;
+
     this.group = new THREE.Group();
     this.tiltGroup = new THREE.Group();
+    this.orbitalGroup = new THREE.Group();
+    this.orbitalPlaneGroup = new THREE.Group();
+
+    this.tiltGroup.add(this.mesh);
+    this.group.add(this.tiltGroup);
+    this.orbitalGroup.add(this.group);
+    this.orbitalPlaneGroup.add(this.orbitalGroup);
+
     this.group.position.set(
       this.semiMajorAxis * AppState.get("distanceScale"),
       0,
       0,
     );
     this.tiltGroup.rotation.z = THREE.MathUtils.degToRad(this.axisTilt);
-    this.tiltGroup.add(this.mesh);
-    this.group.add(this.tiltGroup);
+    this.orbitalGroup.rotation.y = THREE.MathUtils.degToRad(
+      this.argumentOfPeriapsis,
+    );
+    this.orbitalPlaneGroup.rotation.y = THREE.MathUtils.degToRad(
+      this.ascendingNode,
+    );
+    this.orbitalPlaneGroup.rotation.x = THREE.MathUtils.degToRad(
+      this.orbitalTilt,
+    );
+
+    this.parent?.group.add(this.orbitalPlaneGroup);
+    this.parent?.children.push(this);
+
     this.orbit = createOrbit(
       this.eccentricity,
-      this.orbitalTilt,
-      this.type === "planet" ? this.color : 0x999999,
+      this.type === "planet" ? this.color : 0xaaaaaa,
     );
     if (this.parent && this.semiMajorAxis > 0) {
-      this.parent.group.add(this.orbit);
+      this.orbitalGroup.add(this.orbit);
       this.orbit.userData = this;
     }
-
-    // if (this.type !== "moon") this.trail = createTrail(5000);
 
     this.trail = createTrail(
       this.type === "moon"
@@ -62,7 +85,11 @@ export class CelestialBody extends CelestialBodyData {
   }
   setBodyScale(radiusScale: number) {
     let scale = radiusScale * this.radius;
-    this.mesh.scale.set(scale, scale, scale);
+    this.mesh.scale.set(
+      scale * this.shapeScale[0],
+      scale * this.shapeScale[1],
+      scale * this.shapeScale[2],
+    );
   }
   setOrbitScale(distanceScale: number) {
     if (this.parent && this.semiMajorAxis > 0) {
@@ -115,17 +142,22 @@ export class CelestialBody extends CelestialBodyData {
     THREE.BufferGeometry,
     THREE.Material,
   ] {
-    const geometry = new THREE.SphereGeometry(1, 64, 64);
-    let material: THREE.MeshStandardMaterial;
+    const geometry = CelestialBody.sphereGeometry;
+    let material;
     if (this.name === "Sun") {
       material = new THREE.MeshStandardMaterial({
-        emissive: "#FFffff",
-
-        emissiveIntensity: 8,
+        emissive: this.color,
+        // emissive: "#ffffff",
+        emissiveIntensity: 20,
+        // metalness: 1,
+        // roughness: 1,
+        // color: "#FFD27D",
+        // color: "#ff0000",
       });
     } else {
       material = new THREE.MeshStandardMaterial({
-        color: this.color || "#FFFFFF",
+        // color: this.color || "#FFFFFF",
+        // color: "#ffffff",
         roughness: 1,
         metalness: 0,
       });

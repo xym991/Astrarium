@@ -26,6 +26,7 @@ export default async function start(canvas: HTMLCanvasElement) {
   // build solar system
   const solarSystem = buildSolarSystem(solarSystemData);
   solarSystem.group.position.set(0, 0, 0);
+  scene.add(solarSystem.group);
 
   //add textures
   recursiveTransform(solarSystem, (body) => {
@@ -64,24 +65,28 @@ export default async function start(canvas: HTMLCanvasElement) {
 
       window.innerHeight,
     ),
-    0.075, // strength
-    1, // radius
-    0.05, // threshold
+    0.25, // strength
+    1.2, // radius
+    2, // threshold
+    // 0.075,
+    // 1,
+    // 0.05,
   );
 
   composer.addPass(bloomPass);
 
   composer.addPass(new FXAAPass());
-  renderer.toneMapping = THREE.NoToneMapping;
+  // renderer.toneMapping = THREE.NoToneMapping;
 
   setTimeout(() => {
     AppState.set("focusedBody", solarSystem);
+
     recursiveTransform(solarSystem, (body) => {
       if (body.trail?.line) {
         scene.add(body.trail.line);
       }
     });
-  }, 10);
+  }, 0);
 
   // labels
   const labelController = LabelController.getInstance(
@@ -125,13 +130,12 @@ export default async function start(canvas: HTMLCanvasElement) {
   }
 
   function initLight(scene: THREE.Scene) {
-    const light = new THREE.PointLight("#FFFFFF", 18, 0);
-    light.decay = 0.1;
+    const light = new THREE.PointLight("#FFFFFF", 7, 0);
+    light.decay = 0.075;
+
     light.position.set(0, 0, 0);
     solarSystem.group.add(light);
-    scene.add(solarSystem.group);
-
-    const ambientLight = new THREE.AmbientLight("#ffffff", 0.25);
+    const ambientLight = new THREE.AmbientLight("#ffffff", 0.2);
     scene.add(ambientLight);
   }
 
@@ -159,27 +163,23 @@ export default async function start(canvas: HTMLCanvasElement) {
       // revolution
       if (body.orbitalPeriod !== null) {
         const M =
+          THREE.MathUtils.degToRad(body.meanAnomalyAtEpoch) +
           ((orbitDays % body.orbitalPeriod) / body.orbitalPeriod) * Math.PI * 2;
 
         const E = guessOrbitE(M, body.eccentricity);
 
-        let x =
+        const x =
           body.semiMajorAxis *
           distanceScale *
           (Math.cos(E) - body.eccentricity);
 
-        let z =
+        const z =
           body.semiMajorAxis *
           distanceScale *
           Math.sqrt(1 - body.eccentricity * body.eccentricity) *
           Math.sin(E);
 
-        const i = THREE.MathUtils.degToRad(body.orbitalTilt);
-
-        const y = -z * Math.sin(i);
-        z = z * Math.cos(i);
-
-        body.group.position.set(x, y, z);
+        body.group.position.set(x, 0, z);
       }
 
       //trails
