@@ -33,8 +33,8 @@ export default class CameraController {
     this.camera = new THREE.PerspectiveCamera(
       50,
       window.innerWidth / window.innerHeight,
-      0.001,
-      5000000,
+      0.1,
+      10000000,
     );
     this.inputController = new InputController(canvas);
     this.movementController = new OverviewController();

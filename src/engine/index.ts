@@ -16,7 +16,7 @@ import guessOrbitE from "./utils/guessOrbitE";
 
 let globalTime = 0;
 const solarSystemVelocity = new THREE.Vector3(0, 500, 0);
-const maxSolarDriftDistance = 50000;
+const maxSolarDriftDistance = 5000000;
 
 export default async function start(canvas: HTMLCanvasElement) {
   // scene
@@ -37,13 +37,11 @@ export default async function start(canvas: HTMLCanvasElement) {
   const cameraController = CameraController.getInstance(canvas, solarSystem);
   const camera = cameraController.getCamera();
 
-  // light
-  initLight(scene);
-
   // renderer
   const renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     antialias: true,
+    // logarithmicDepthBuffer: true,
     // alpha: true,
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -51,6 +49,8 @@ export default async function start(canvas: HTMLCanvasElement) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const clock = new THREE.Clock();
 
   const composer = new EffectComposer(renderer);
@@ -76,6 +76,10 @@ export default async function start(canvas: HTMLCanvasElement) {
   composer.addPass(bloomPass);
 
   composer.addPass(new FXAAPass());
+
+  // light
+  initLight(scene);
+
   // renderer.toneMapping = THREE.NoToneMapping;
 
   setTimeout(() => {
@@ -132,7 +136,7 @@ export default async function start(canvas: HTMLCanvasElement) {
   function initLight(scene: THREE.Scene) {
     const light = new THREE.PointLight("#FFFFFF", 7, 0);
     light.decay = 0.075;
-
+    light.castShadow = true;
     light.position.set(0, 0, 0);
     solarSystem.group.add(light);
     const ambientLight = new THREE.AmbientLight("#ffffff", 0.2);
@@ -146,6 +150,9 @@ export default async function start(canvas: HTMLCanvasElement) {
     const distanceScale = AppState.get("distanceScale");
     const orbitDays = globalTime * AppState.get("simulationRevolutionSpeed");
     const rotationDays = globalTime * AppState.get("simulationRotationSpeed");
+    const revolutionSpeedChanged = AppState.isDirty(
+      "simulationRevolutionSpeed",
+    );
     recursiveTransform(solarSystem, (body) => {
       //body scale
       if (radiusScaleChanged) body.setBodyScale(radiusScale);
@@ -153,6 +160,10 @@ export default async function start(canvas: HTMLCanvasElement) {
       //orbit scale
       if (distanceScaleChanged) {
         body.setOrbitScale(distanceScale);
+        body.resetTrail();
+      }
+
+      if (revolutionSpeedChanged) {
         body.resetTrail();
       }
 
@@ -184,11 +195,13 @@ export default async function start(canvas: HTMLCanvasElement) {
 
       //trails
       body.updateTrail(camera);
+
+      if (body.customUpdate) body.customUpdate();
     });
 
     udpateBackground(camera);
-    labelController.update(camera);
     cameraController.update(delta);
+    labelController.update(camera);
   }
   //key events
   window.addEventListener("keydown", (e) => {
@@ -258,7 +271,7 @@ function appendBackground(scene: THREE.Scene) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
 
-      const radius = 1000000;
+      const radius = 10000000;
 
       positions.push(
         radius * Math.sin(phi) * Math.cos(theta),

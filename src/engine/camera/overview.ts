@@ -13,7 +13,7 @@ export class OverviewController implements MovementController {
 
   private readonly rotationSensitivity = 0.005;
   private minDistance = 2;
-  private maxDistance = 5000000;
+  private maxDistance = 10000000;
 
   private lastFocusedBody?: CelestialBody;
 

@@ -7,7 +7,7 @@ export default function createOrbit(
   eccentricity: number,
   color?: number | string,
 ) {
-  if (!color) color = 0xaaaaaa;
+  if (!color) color = 0x555555;
 
   const positions: number[] = [];
 
@@ -25,8 +25,8 @@ export default function createOrbit(
   geometry.setPositions(positions);
 
   const material = new LineMaterial({
-    color: new THREE.Color(color).multiplyScalar(1.5),
-    linewidth: 1.5,
+    color: new THREE.Color(color).convertLinearToSRGB(),
+    linewidth: 2,
     transparent: true,
     opacity: 0.5,
   });

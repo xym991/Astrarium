@@ -23,10 +23,8 @@ export const RANGES: Record<NumericKeys, number[]> = {
   simulationSpeed: [0.1, 10, 1],
   simulationRevolutionSpeed: [1, 500, 1],
   simulationRotationSpeed: [0.1, 10, 1],
-  // radiusScale: [1, 10, 0.0001],
-  // distanceScale: [1, 10, 0.000005],
-  radiusScale: [1, 10, 0.000025],
-  distanceScale: [1, 10, 0.0000025],
+  radiusScale: [1, 10, 0.0001],
+  distanceScale: [1, 10, 0.00001],
 };
 
 type CelestialBodyType = "star" | "planet" | "moon" | "asteroid" | "dwarf";
@@ -120,7 +118,7 @@ export const solarSystemData = new CelestialBodyData({
       meanAnomalyAtEpoch: 174.796,
 
       type: "planet",
-      color: "#b1aeaa",
+      color: "#B8B7C5",
     }),
   )
   .addChild(
@@ -142,7 +140,7 @@ export const solarSystemData = new CelestialBodyData({
       meanAnomalyAtEpoch: 50.115,
 
       type: "planet",
-      color: "#C8B793",
+      color: "#C89A26",
     }),
   )
   .addChild(
@@ -160,7 +158,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalTilt: 0,
       axisTilt: 23.44,
       rotationPeriod: 0.99726968,
-      color: "#6390db",
+      color: "#0099FF",
     }).addChild(
       new CelestialBodyData({
         name: "Moon",
@@ -201,7 +199,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalPeriod: 686.98,
       rotationPeriod: 1.025957,
 
-      color: "#b97e2e",
+      color: "#C85A1E",
     })
       .addChild(
         new CelestialBodyData({
@@ -273,7 +271,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalPeriod: 4332.59,
       rotationPeriod: 0.41354,
 
-      color: "#C19A75",
+      color: "#C46B4D",
     })
       .addChild(
         new CelestialBodyData({
@@ -393,7 +391,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalPeriod: 10759.22,
       rotationPeriod: 0.44401,
 
-      color: "#BAB38A",
+      color: "#C9AA55",
     })
       .addChild(
         new CelestialBodyData({
@@ -585,7 +583,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalPeriod: 30688.5,
       rotationPeriod: -0.71833,
 
-      color: "#87b7bf",
+      color: "#3DC6DF",
     })
       .addChild(
         new CelestialBodyData({
@@ -729,7 +727,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalPeriod: 60182,
       rotationPeriod: 0.67125,
 
-      color: "#466ede",
+      color: "#5478F9",
     })
       .addChild(
         new CelestialBodyData({
@@ -801,7 +799,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalTilt: 10.59,
       axisTilt: 4,
 
-      color: "#A9A39A",
+      color: "#AEB6C4",
     }),
   )
   .addChild(
@@ -825,7 +823,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalTilt: 17.16,
       axisTilt: 122.53,
 
-      color: "#B8A48A",
+      color: "#C8A88B",
     }),
   )
   .addChild(
@@ -849,7 +847,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalTilt: 44.04,
       axisTilt: 78.0,
 
-      color: "#D8D8D8",
+      color: "#D8E6F2",
     }),
   )
   .addChild(
@@ -873,7 +871,7 @@ export const solarSystemData = new CelestialBodyData({
       orbitalTilt: 28.19,
       axisTilt: 126,
 
-      color: "#E0D7C8",
+      color: "#7FD8E8",
     }),
   )
   .addChild(
@@ -896,6 +894,6 @@ export const solarSystemData = new CelestialBodyData({
 
       orbitalTilt: 28.98,
       axisTilt: 29,
-      color: "#C98E6B",
+      color: "#C97952",
     }),
   );

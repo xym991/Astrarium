@@ -20,6 +20,23 @@ body {
   height: 100%;
 }
 
+/* .marker {
+  position: absolute;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+} */
+
+.indicator {
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
 #labels {
   position: absolute;
   inset: 0;
@@ -27,16 +44,22 @@ body {
   pointer-events: none;
 }
 
-.label {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  pointer-events: auto;
-  color: white;
-  font-size: 16px;
+#labels div {
+  flex-shrink: 0;
+  z-index: 1;
+  pointer-events: all;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   cursor: pointer;
   font-weight: 500;
-  z-index: 1;
+  white-space: nowrap;
+  position: absolute;
+}
+
+.label {
+  color: white;
+  font-size: 16px;
 }
 
 #ui {
@@ -45,5 +68,6 @@ body {
   left: 0;
   width: 100%;
   z-index: 10;
-  /* pointer-events: none; */
+  display: none;
+  pointer-events: none;
 }

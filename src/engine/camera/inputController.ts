@@ -64,11 +64,9 @@ export class InputController {
     this.canvas.addEventListener("mousemove", (e) => {
       this.mouseState.mouseDeltaX = e.movementX;
       this.mouseState.mouseDeltaY = e.movementY;
-      // console.log(this.mouseState);
     });
     this.canvas.addEventListener("wheel", (e) => {
       this.mouseState.scrollDelta = e.deltaY;
-      // console.log(this.mouseState);
     });
   }
   private handleKeys(key: string, val: boolean) {
@@ -83,7 +81,6 @@ export class InputController {
     if (button === 2) {
       this.mouseState.secondaryMouse = val;
     }
-    // console.log(this.mouseState);
   }
   public getState(): InputState {
     return {

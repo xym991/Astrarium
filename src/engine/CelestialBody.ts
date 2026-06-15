@@ -5,6 +5,7 @@ import AppState from "../state";
 import createOrbit from "./utils/createOrbit";
 import { Line2 } from "three/addons/lines/Line2.js";
 import createTrail, { type Trail } from "./utils/createTrail";
+import plugins from "./utils/celestialBodyPlugins";
 
 export class CelestialBody extends CelestialBodyData {
   private static sphereGeometry = new THREE.SphereGeometry(1, 64, 64);
@@ -21,6 +22,9 @@ export class CelestialBody extends CelestialBodyData {
   parent: CelestialBody | null = null;
   orbit: Line2;
   trail: Trail | null;
+  // additionalProps: Record<string, unknown> = {};
+  customUpdate?: () => void;
+
   private tempVector = new THREE.Vector3();
   constructor(props: CelestialBodyData, parent: CelestialBody | null = null) {
     super(props);
@@ -63,7 +67,7 @@ export class CelestialBody extends CelestialBodyData {
 
     this.orbit = createOrbit(
       this.eccentricity,
-      this.type === "planet" ? this.color : 0xaaaaaa,
+      this.type === "planet" ? this.color : 0x555555,
     );
     if (this.parent && this.semiMajorAxis > 0) {
       this.orbitalGroup.add(this.orbit);
@@ -82,13 +86,20 @@ export class CelestialBody extends CelestialBodyData {
               : 0,
     );
     // this.trail.line.frustumCulled = false;
+    if (plugins[this.name.toLowerCase()]) {
+      let updatefn = plugins[this.name.toLowerCase()]?.(this);
+      if (updatefn) {
+        this.customUpdate = updatefn;
+      }
+    }
   }
   setBodyScale(radiusScale: number) {
     let scale = radiusScale * this.radius;
+    this.tiltGroup.scale.set(scale, scale, scale);
     this.mesh.scale.set(
-      scale * this.shapeScale[0],
-      scale * this.shapeScale[1],
-      scale * this.shapeScale[2],
+      this.shapeScale[0],
+      this.shapeScale[1],
+      this.shapeScale[2],
     );
   }
   setOrbitScale(distanceScale: number) {
