@@ -2,7 +2,7 @@ import type { AstrariumState } from "../state";
 
 export const defaultState: AstrariumState = {
   simulationSpeed: 1,
-  simulationRevolutionSpeed: 1,
+  simulationRevolutionSpeed: 10,
   simulationRotationSpeed: 0.1,
   radiusScale: 1,
   distanceScale: 10,

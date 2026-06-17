@@ -13,10 +13,15 @@ import LabelController from "./labels";
 import addTextures from "./utils/addTextures";
 import listMeshes from "./utils/listMeshes";
 import guessOrbitE from "./utils/guessOrbitE";
+import Stats from "stats.js";
 
 let globalTime = 0;
-const solarSystemVelocity = new THREE.Vector3(0, 20, 0);
-const maxSolarDriftDistance = 5000000;
+const solarSystemVelocity = new THREE.Vector3(0, 50, 0);
+const maxSolarDriftDistance = 50000;
+
+const stats = new Stats();
+stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild(stats.dom);
 
 export default async function start(canvas: HTMLCanvasElement) {
   // scene
@@ -67,7 +72,7 @@ export default async function start(canvas: HTMLCanvasElement) {
     ),
     0.25, // strength
     1.2, // radius
-    2, // threshold
+    10, // threshold
     // 0.075,
     // 1,
     // 0.05,
@@ -100,8 +105,9 @@ export default async function start(canvas: HTMLCanvasElement) {
   initCanvasClickListeners(canvas, camera, listMeshes(scene));
 
   function animate() {
-    requestAnimationFrame(animate);
-    if (AppState.get("paused")) return;
+    if (AppState.get("paused")) return requestAnimationFrame(animate);
+    stats.begin();
+
     const delta = clock.getDelta();
     globalTime += delta;
 
@@ -112,6 +118,8 @@ export default async function start(canvas: HTMLCanvasElement) {
 
     updateScene(delta);
     composer.render();
+    stats.end();
+    requestAnimationFrame(animate);
   }
   animate();
   function resetSolarPosition() {
@@ -121,7 +129,7 @@ export default async function start(canvas: HTMLCanvasElement) {
     camera.updateMatrixWorld(true);
     recursiveTransform(solarSystem, (body) => {
       if (!body.trail) return;
-      const points = body.trail.points;
+      const points = body.trail.pointsHigh;
 
       for (let i = 0; i < points.length; i += 3) {
         // points[i] -= maxSolarDriftDistance;
@@ -190,8 +198,6 @@ export default async function start(canvas: HTMLCanvasElement) {
 
         body.group.position.set(x, 0, z);
       }
-
-      body.updateTrail();
     });
 
     udpateBackground(camera);
@@ -200,6 +206,7 @@ export default async function start(canvas: HTMLCanvasElement) {
 
     recursiveTransform(solarSystem, (body) => {
       body.postUpdate(camera);
+      body.updateTrail(camera);
     });
   }
   //key events
