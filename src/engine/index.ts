@@ -15,7 +15,7 @@ import listMeshes from "./utils/listMeshes";
 import guessOrbitE from "./utils/guessOrbitE";
 
 let globalTime = 0;
-const solarSystemVelocity = new THREE.Vector3(0, 500, 0);
+const solarSystemVelocity = new THREE.Vector3(0, 20, 0);
 const maxSolarDriftDistance = 5000000;
 
 export default async function start(canvas: HTMLCanvasElement) {
@@ -81,15 +81,13 @@ export default async function start(canvas: HTMLCanvasElement) {
   initLight(scene);
 
   // renderer.toneMapping = THREE.NoToneMapping;
-
+  recursiveTransform(solarSystem, (body) => {
+    if (body.trail?.line) {
+      scene.add(body.trail.line);
+    }
+  });
   setTimeout(() => {
     AppState.set("focusedBody", solarSystem);
-
-    recursiveTransform(solarSystem, (body) => {
-      if (body.trail?.line) {
-        scene.add(body.trail.line);
-      }
-    });
   }, 0);
 
   // labels
@@ -193,15 +191,16 @@ export default async function start(canvas: HTMLCanvasElement) {
         body.group.position.set(x, 0, z);
       }
 
-      //trails
-      body.updateTrail(camera);
-
-      if (body.customUpdate) body.customUpdate();
+      body.updateTrail();
     });
 
     udpateBackground(camera);
     cameraController.update(delta);
     labelController.update(camera);
+
+    recursiveTransform(solarSystem, (body) => {
+      body.postUpdate(camera);
+    });
   }
   //key events
   window.addEventListener("keydown", (e) => {

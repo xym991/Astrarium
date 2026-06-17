@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { CelestialBody } from "../CelestialBody";
 import AppState from "../../state";
 import { recursiveTransform } from "../utils";
+import shouldShowElement from "../utils/shouldShowElement";
 
 export default class LabelController {
   private static instance: LabelController;
@@ -66,7 +67,7 @@ export default class LabelController {
 
       const cameraDistance = this.cameraPos.distanceTo(bodyPos);
 
-      if (!this.shouldShowLabel(body, cameraDistance)) {
+      if (!shouldShowElement(body, cameraDistance)) {
         marker.label.style.display = "none";
         marker.indicator.style.display = "none";
         return;
@@ -92,13 +93,14 @@ export default class LabelController {
   }
 
   shouldShowLabel(body: CelestialBody, cameraDistance: number) {
-    if (body.type === "star")
-      return cameraDistance > body.radius * AppState.get("radiusScale") * 50;
-    const orbitRadius = body.semiMajorAxis * AppState.get("distanceScale");
+    const bodyRadius = body.radius * AppState.get("radiusScale");
+    const bodyOrbitalRadius =
+      body.semiMajorAxis * AppState.get("distanceScale");
+    if (body.type === "star") return cameraDistance > bodyRadius * 100;
+
     return (
-      cameraDistance < orbitRadius * 20 &&
-      cameraDistance >
-        orbitRadius * 0.001 + body.radius * AppState.get("radiusScale") * 100
+      cameraDistance < bodyOrbitalRadius * 20 &&
+      cameraDistance > bodyOrbitalRadius * 0.001 + bodyRadius * 100
     );
   }
 

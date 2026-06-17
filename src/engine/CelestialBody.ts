@@ -6,6 +6,7 @@ import createOrbit from "./utils/createOrbit";
 import { Line2 } from "three/addons/lines/Line2.js";
 import createTrail, { type Trail } from "./utils/createTrail";
 import plugins from "./utils/celestialBodyPlugins";
+import shouldShowElement from "./utils/shouldShowElement";
 
 export class CelestialBody extends CelestialBodyData {
   private static sphereGeometry = new THREE.SphereGeometry(1, 64, 64);
@@ -21,9 +22,8 @@ export class CelestialBody extends CelestialBodyData {
 
   parent: CelestialBody | null = null;
   orbit: Line2;
-  trail: Trail | null;
-  // additionalProps: Record<string, unknown> = {};
-  customUpdate?: () => void;
+  trail: Trail;
+  postUpdate: (camera: THREE.PerspectiveCamera) => void;
 
   private tempVector = new THREE.Vector3();
   constructor(props: CelestialBodyData, parent: CelestialBody | null = null) {
@@ -85,13 +85,28 @@ export class CelestialBody extends CelestialBodyData {
               ? 6000
               : 0,
     );
-    // this.trail.line.frustumCulled = false;
-    if (plugins[this.name.toLowerCase()]) {
-      let updatefn = plugins[this.name.toLowerCase()]?.(this);
-      if (updatefn) {
-        this.customUpdate = updatefn;
-      }
-    }
+    this.trail.line.frustumCulled = false;
+
+    this.postUpdate = (() => {
+      let pluginUpdate = plugins[this.name.toLowerCase()]?.(this);
+
+      return (camera: THREE.PerspectiveCamera) => {
+        pluginUpdate?.();
+
+        const distance = camera.position.distanceTo(
+          this.mesh.getWorldPosition(this.tempVector),
+        );
+
+        this.trail.line.visible =
+          this.type == "moon"
+            ? shouldShowElement(this, distance, 15, 20)
+            : shouldShowElement(this, distance, 15, 0);
+        this.orbit.visible =
+          this.type == "moon"
+            ? shouldShowElement(this, distance, 100, 20)
+            : shouldShowElement(this, distance, 100, 0);
+      };
+    })();
   }
   setBodyScale(radiusScale: number) {
     let scale = radiusScale * this.radius;
@@ -108,7 +123,7 @@ export class CelestialBody extends CelestialBodyData {
     }
   }
 
-  updateTrail(camera: THREE.PerspectiveCamera) {
+  updateTrail() {
     if (!this.trail) return;
     const pos = this.group.getWorldPosition(this.tempVector);
     let i = this.trail.index * 3;
@@ -119,6 +134,13 @@ export class CelestialBody extends CelestialBodyData {
     this.trail.points[_i] = pos.x;
     this.trail.points[_i + 1] = pos.y;
     this.trail.points[_i + 2] = pos.z;
+    this.name == "Eris" && console.log(pos);
+    this.name == "Eris" &&
+      console.log(
+        this.trail.points[i],
+        this.trail.points[i + 1],
+        this.trail.points[i + 2],
+      );
 
     if (this.trail.count < this.trail.length) this.trail.count++;
 
@@ -131,21 +153,11 @@ export class CelestialBody extends CelestialBodyData {
     this.trail.index++;
     if (this.trail.index >= this.trail.length * 2)
       this.trail.index = this.trail.length;
-    if (this.type === "moon") {
-      this.trail.line.visible = this.shouldShowTrail(camera);
-    }
   }
 
   resetTrail() {
     if (!this.trail) return;
     this.trail.count = 0;
-  }
-
-  private shouldShowTrail(camera: THREE.PerspectiveCamera) {
-    const distance = camera.position.distanceTo(
-      this.mesh.getWorldPosition(this.tempVector),
-    );
-    return distance < this.semiMajorAxis / (10 ** 3 * 5);
   }
 
   private createCelestialBodyMesh(): [
@@ -160,15 +172,9 @@ export class CelestialBody extends CelestialBodyData {
         emissive: this.color,
         // emissive: "#ffffff",
         emissiveIntensity: 20,
-        // metalness: 1,
-        // roughness: 1,
-        // color: "#FFD27D",
-        // color: "#ff0000",
       });
     } else {
       material = new THREE.MeshStandardMaterial({
-        // color: this.color || "#FFFFFF",
-        // color: "#ffffff",
         roughness: 1,
         metalness: 0,
       });

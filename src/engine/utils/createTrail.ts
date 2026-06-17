@@ -1,18 +1,17 @@
 import type { CelestialBody } from "../CelestialBody";
 import * as THREE from "three";
 
-const MAX_POINTS = 5000;
-
 export type Trail = {
   line: THREE.Line;
   points: Float32Array;
   index: number;
   length: number;
   count: number;
+  origin: THREE.Vector3;
 };
 
-export default function createTrail(length: number): Trail | null {
-  if (!length) return null;
+export default function createTrail(length: number): Trail {
+  if (!length) throw new Error("Trail length must be greater than 0");
   let geometry = new THREE.BufferGeometry();
   let buffer = new Float32Array(length * 3 * 2);
   geometry.setAttribute(
@@ -31,5 +30,6 @@ export default function createTrail(length: number): Trail | null {
     index: length,
     length,
     count: 0,
+    origin: new THREE.Vector3(),
   };
 }

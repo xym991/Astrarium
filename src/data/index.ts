@@ -23,8 +23,8 @@ export const RANGES: Record<NumericKeys, number[]> = {
   simulationSpeed: [0.1, 10, 1],
   simulationRevolutionSpeed: [1, 500, 1],
   simulationRotationSpeed: [0.1, 10, 1],
-  radiusScale: [1, 10, 0.0001],
-  distanceScale: [1, 10, 0.00001],
+  radiusScale: [1, 10, 0.00001],
+  distanceScale: [1, 10, 0.000001],
 };
 
 type CelestialBodyType = "star" | "planet" | "moon" | "asteroid" | "dwarf";
