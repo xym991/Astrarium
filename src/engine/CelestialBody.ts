@@ -7,8 +7,8 @@ import { Line2 } from "three/addons/lines/Line2.js";
 import createTrail, { type Trail } from "./utils/createTrail";
 import plugins from "./utils/celestialBodyPlugins";
 import shouldShowElement from "./utils/shouldShowElement";
-import splitDouble from "./utils/splitDouble";
 import { splitVector3 } from "./utils/splitVector3";
+import splitDouble from "./utils/splitDouble";
 
 export class CelestialBody extends CelestialBodyData {
   private static sphereGeometry = new THREE.SphereGeometry(1, 64, 64);
@@ -82,13 +82,13 @@ export class CelestialBody extends CelestialBodyData {
 
     this.trail = createTrail(
       this.type === "moon"
-        ? 2000
+        ? 1000
         : this.type === "planet"
-          ? 10000
+          ? 5000
           : this.type === "star"
-            ? 30000
+            ? 10000
             : this.type === "dwarf"
-              ? 6000
+              ? 5000
               : 0,
     );
     this.trail.line.frustumCulled = false;
@@ -111,43 +111,11 @@ export class CelestialBody extends CelestialBodyData {
           this.type == "moon"
             ? shouldShowElement(this, distance, 100, 20)
             : shouldShowElement(this, distance, 100, 0);
-
-        // if (this.name == "Eris") {
-        //   const pos = this.group.getWorldPosition(this.tempVector);
-        //   const posSplit = splitVector3(pos);
-
-        //   const camSplit = splitVector3(camera.position);
-
-        //   const precise = posSplit.high
-        //     .clone()
-        //     .sub(camSplit.high)
-        //     .add(posSplit.low.clone().sub(camSplit.low));
-
-        //   const actual = pos.clone().sub(camera.position);
-
-        //   // console.log(actual.distanceTo(precise));
-
-        //   const bad = new THREE.Vector3(
-        //     Math.fround(pos.x),
-        //     Math.fround(pos.y),
-        //     Math.fround(pos.z),
-        //   ).sub(
-        //     new THREE.Vector3(
-        //       Math.fround(camera.position.x),
-        //       Math.fround(camera.position.y),
-        //       Math.fround(camera.position.z),
-        //     ),
-        //   );
-
-        //   console.log("bad error", actual.distanceTo(bad));
-
-        //   console.log("precise error", actual.distanceTo(precise));
-        // }
       };
     })();
   }
-  setBodyScale(radiusScale: number) {
-    let scale = radiusScale * this.radius;
+  setBodyScale(distanceScale: number) {
+    let scale = distanceScale * this.radius;
     this.tiltGroup.scale.set(scale, scale, scale);
     this.mesh.scale.set(
       this.shapeScale[0],
@@ -163,17 +131,23 @@ export class CelestialBody extends CelestialBodyData {
 
   updateTrail(camera: THREE.PerspectiveCamera) {
     if (!this.trail) return;
-    splitVector3(
-      camera.position,
-      this.trail.material.uniforms.cameraHigh.value,
-      this.trail.material.uniforms.cameraLow.value,
-    );
-
-    this.trail.material.uniforms.rotation.value.copy(
-      this.tempMatrix.extractRotation(camera.matrixWorldInverse),
-    );
+    this.trail.line.material.setCamera(camera);
 
     const pos = this.group.getWorldPosition(this.tempVector);
+    if (
+      Math.abs(
+        pos.x -
+          this.trail.distance.x +
+          pos.y -
+          this.trail.distance.y +
+          pos.z -
+          this.trail.distance.z,
+      ) < 0.01
+    ) {
+      return;
+    }
+
+    this.trail.distance.copy(pos);
 
     let i = this.trail.index * 3;
     let _i = (this.trail.index - this.trail.length) * 3;
@@ -203,19 +177,12 @@ export class CelestialBody extends CelestialBodyData {
       (this.trail.count || 10) - 10,
     );
 
-    let { positionHigh, positionLow } = this.trail.line.geometry.attributes;
-    // position.needsUpdate = true;
-    positionHigh.needsUpdate = true;
-    positionLow.needsUpdate = true;
+    this.trail.line.geometry.attributes.positionHigh.needsUpdate = true;
+    this.trail.line.geometry.attributes.positionLow.needsUpdate = true;
 
     this.trail.index++;
     if (this.trail.index >= this.trail.length * 2)
       this.trail.index = this.trail.length;
-    // if (this.name == "Eris" && this.trail.count < 100) {
-    //   console.log(position.array.slice(0, 100));
-    //   console.log(positionHigh.array.slice(0, 100));
-    //   console.log(positionLow.array.slice(0, 100));
-    // }
   }
 
   resetTrail() {

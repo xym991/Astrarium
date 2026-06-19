@@ -1,11 +1,8 @@
 import type { AstrariumState } from "../state";
 
 export const defaultState: AstrariumState = {
-  simulationSpeed: 1,
-  simulationRevolutionSpeed: 10,
-  simulationRotationSpeed: 0.1,
-  radiusScale: 1,
-  distanceScale: 10,
+  timeScale: 1,
+  distanceScale: 1,
   cameraMode: "overview",
   focusedBody: null,
   showOrbitPaths: true,
@@ -20,11 +17,8 @@ export type NumericKeys = {
 }[keyof AstrariumState];
 
 export const RANGES: Record<NumericKeys, number[]> = {
-  simulationSpeed: [0.1, 10, 1],
-  simulationRevolutionSpeed: [1, 500, 1],
-  simulationRotationSpeed: [0.1, 10, 1],
-  radiusScale: [1, 10, 0.00001],
-  distanceScale: [1, 10, 0.000001],
+  timeScale: [0.1, 10000, 1],
+  distanceScale: [1, 10, 0.00001],
 };
 
 type CelestialBodyType = "star" | "planet" | "moon" | "asteroid" | "dwarf";

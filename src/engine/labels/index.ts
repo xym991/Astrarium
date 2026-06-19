@@ -93,7 +93,7 @@ export default class LabelController {
   }
 
   shouldShowLabel(body: CelestialBody, cameraDistance: number) {
-    const bodyRadius = body.radius * AppState.get("radiusScale");
+    const bodyRadius = body.radius * AppState.get("distanceScale");
     const bodyOrbitalRadius =
       body.semiMajorAxis * AppState.get("distanceScale");
     if (body.type === "star") return cameraDistance > bodyRadius * 100;

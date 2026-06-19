@@ -70,7 +70,7 @@ export class OrbitController implements MovementController {
       .normalize();
 
     const moveSpeed =
-      (focusedBody.radius * AppState.get("radiusScale") + this.altitude) *
+      (focusedBody.radius * AppState.get("distanceScale") + this.altitude) *
       delta;
 
     if (movement.forward)
@@ -86,13 +86,13 @@ export class OrbitController implements MovementController {
       this.offset.add(right.clone().multiplyScalar(-moveSpeed));
 
     const radius =
-      focusedBody.radius * AppState.get("radiusScale") + this.altitude;
+      focusedBody.radius * AppState.get("distanceScale") + this.altitude;
     this.offset.setLength(radius);
     const center = getBodyWorldPosition(focusedBody);
     camera.position.copy(center.clone().add(this.offset));
   }
   private onTargetChanged(body: CelestialBody) {
-    const radius = body.radius * AppState.get("radiusScale");
+    const radius = body.radius * AppState.get("distanceScale");
     this.altitude = radius * 0.5;
     this.minAltitude = radius * 0.2;
     this.maxAltitude = radius * 10;

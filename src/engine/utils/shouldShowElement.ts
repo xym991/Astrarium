@@ -6,7 +6,7 @@ export default function shouldShowElement(
   near = 100,
   far = 20,
 ): boolean {
-  const bodyRadius = body.radius * AppState.get("radiusScale");
+  const bodyRadius = body.radius * AppState.get("distanceScale");
   const bodyOrbitalRadius = body.semiMajorAxis * AppState.get("distanceScale");
   if (body.type === "star") return cameraDistance > bodyRadius * 100;
 

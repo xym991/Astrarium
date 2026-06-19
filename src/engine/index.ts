@@ -16,8 +16,9 @@ import guessOrbitE from "./utils/guessOrbitE";
 import Stats from "stats.js";
 
 let globalTime = 0;
-const solarSystemVelocity = new THREE.Vector3(0, 50, 0);
+const solarSystemVelocity = new THREE.Vector3(0, 1, 0);
 const maxSolarDriftDistance = 50000;
+const SUN_GALACTIC_SPEED = 19_008_000; // km/day
 
 const stats = new Stats();
 stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -114,7 +115,7 @@ export default async function start(canvas: HTMLCanvasElement) {
     if (solarSystem.group.position.y > maxSolarDriftDistance)
       resetSolarPosition();
 
-    solarSystem.group.position.addScaledVector(solarSystemVelocity, delta);
+    // solarSystem.group.position.addScaledVector(solarSystemVelocity, delta);
 
     updateScene(delta);
     composer.render();
@@ -140,8 +141,8 @@ export default async function start(canvas: HTMLCanvasElement) {
   }
 
   function initLight(scene: THREE.Scene) {
-    const light = new THREE.PointLight("#FFFFFF", 7, 0);
-    light.decay = 0.075;
+    const light = new THREE.PointLight("#FFFFFF", 5, 0);
+    light.decay = 0.05;
     light.castShadow = true;
     light.position.set(0, 0, 0);
     solarSystem.group.add(light);
@@ -150,38 +151,35 @@ export default async function start(canvas: HTMLCanvasElement) {
   }
 
   function updateScene(delta: number) {
-    const radiusScaleChanged = AppState.isDirty("radiusScale");
-    const radiusScale = AppState.get("radiusScale");
     const distanceScaleChanged = AppState.isDirty("distanceScale");
     const distanceScale = AppState.get("distanceScale");
-    const orbitDays = globalTime * AppState.get("simulationRevolutionSpeed");
-    const rotationDays = globalTime * AppState.get("simulationRotationSpeed");
-    const revolutionSpeedChanged = AppState.isDirty(
-      "simulationRevolutionSpeed",
-    );
+    const time = globalTime * AppState.get("timeScale");
+
+    const timeScaleChanged = AppState.isDirty("timeScale");
+
     recursiveTransform(solarSystem, (body) => {
       //body scale
-      if (radiusScaleChanged) body.setBodyScale(radiusScale);
 
-      //orbit scale
       if (distanceScaleChanged) {
+        //orbit scale
+        body.setBodyScale(distanceScale);
         body.setOrbitScale(distanceScale);
         body.resetTrail();
       }
 
-      if (revolutionSpeedChanged) {
+      if (timeScaleChanged) {
         body.resetTrail();
       }
 
       //rotation
-      const angle = (rotationDays / body.rotationPeriod) * Math.PI * 2;
+      const angle = (time / body.rotationPeriod) * Math.PI * 2;
       body.mesh.rotation.y = angle;
 
       // revolution
       if (body.orbitalPeriod !== null) {
         const M =
           THREE.MathUtils.degToRad(body.meanAnomalyAtEpoch) +
-          ((orbitDays % body.orbitalPeriod) / body.orbitalPeriod) * Math.PI * 2;
+          ((time % body.orbitalPeriod) / body.orbitalPeriod) * Math.PI * 2;
 
         const E = guessOrbitE(M, body.eccentricity);
 
@@ -199,6 +197,11 @@ export default async function start(canvas: HTMLCanvasElement) {
         body.group.position.set(x, 0, z);
       }
     });
+    solarSystem.group.position.y +=
+      SUN_GALACTIC_SPEED *
+      delta *
+      AppState.get("timeScale") *
+      AppState.get("distanceScale");
 
     udpateBackground(camera);
     cameraController.update(delta);

@@ -72,10 +72,10 @@ export class OverviewController implements MovementController {
     this.orientation.identity();
 
     this.minDistance = Math.max(
-      body.radius * AppState.get("radiusScale") * 1.2,
+      body.radius * AppState.get("distanceScale") * 1.2,
       0.01,
     );
-    const radius = body.radius * AppState.get("radiusScale");
+    const radius = body.radius * AppState.get("distanceScale");
 
     this.distance = radius * 5;
     if (body.name == "Sun") {
@@ -103,7 +103,7 @@ export class OverviewController implements MovementController {
       );
     }
 
-    // this.maxDistance = body.radius * AppState.get("radiusScale") * 1000;
+    // this.maxDistance = body.radius * AppState.get("distanceScale") * 1000;
 
     this.orientation.multiply(
       new THREE.Quaternion().setFromEuler(

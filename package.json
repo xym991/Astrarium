@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "stats.js": "^0.17.0",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "three-high-precision-lines": "^0.1.1"
   }
 }

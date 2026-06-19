@@ -2,10 +2,7 @@ import { defaultState, type cameraMode } from "../data";
 import type { CelestialBody } from "../engine/CelestialBody";
 
 export interface AstrariumState {
-  simulationSpeed: number;
-  simulationRevolutionSpeed: number;
-  simulationRotationSpeed: number;
-  radiusScale: number;
+  timeScale: number;
   distanceScale: number;
   cameraMode: cameraMode;
   focusedBody: CelestialBody | null;

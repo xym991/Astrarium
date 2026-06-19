@@ -11,7 +11,7 @@ export function getBodyWorldPosition(body: CelestialBody) {
 }
 
 export function getDefaultViewingDistance(body: CelestialBody) {
-  return body.radius * 5 * AppState.get("radiusScale");
+  return body.radius * 5 * AppState.get("distanceScale");
 }
 export function sphericalToCartesian(
   distance: number,
