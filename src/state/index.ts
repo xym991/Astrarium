@@ -6,16 +6,24 @@ export interface AstrariumState {
   distanceScale: number;
   cameraMode: cameraMode;
   focusedBody: CelestialBody | null;
-  showOrbitPaths: boolean;
+  showOrbits: boolean;
   showTrails: boolean;
   showLabels: boolean;
+  showMoons: boolean;
+  showIndicators: boolean;
   paused: boolean;
 }
 
 type DirtyState = Record<keyof AstrariumState, boolean>;
 
+type Listener = (value: AstrariumState[keyof AstrariumState]) => void;
+
 class AppState {
   private static instance: AppState;
+
+  private listeners: {
+    [K in keyof AstrariumState]?: Set<Listener>;
+  } = {};
 
   private state: AstrariumState = { ...defaultState };
 
@@ -42,6 +50,7 @@ class AppState {
     }
     this.state[key] = value;
     this.dirty[key] = true;
+    this.listeners[key]?.forEach((listener) => listener(value));
     return true;
   }
   keys() {
@@ -53,6 +62,18 @@ class AppState {
       this.dirty[key] = false;
     }
     return dirty;
+  }
+
+  subscribe<K extends keyof AstrariumState>(key: K, listener: Listener) {
+    if (!this.listeners[key]) {
+      this.listeners[key] = new Set<Listener>();
+    }
+
+    this.listeners[key]?.add(listener);
+
+    return () => {
+      this.listeners[key]?.delete(listener);
+    };
   }
 }
 

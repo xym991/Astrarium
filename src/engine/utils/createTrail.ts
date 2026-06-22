@@ -29,9 +29,10 @@ export default function createTrail(length: number): Trail {
       positionsLow: pointsLow,
     }),
     new HighPrecisionLineMaterial({
-      color: new THREE.Color(0xffffff).multiplyScalar(5),
+      color: new THREE.Color(0xffffff).multiplyScalar(2),
     }),
   );
+  // line.frustumCulled = false;
 
   return {
     line,

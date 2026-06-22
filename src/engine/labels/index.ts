@@ -67,7 +67,10 @@ export default class LabelController {
 
       const cameraDistance = this.cameraPos.distanceTo(bodyPos);
 
-      if (!shouldShowElement(body, cameraDistance)) {
+      if (
+        !shouldShowElement(body, cameraDistance) ||
+        !body.orbitalGroup.visible
+      ) {
         marker.label.style.display = "none";
         marker.indicator.style.display = "none";
         return;
@@ -75,14 +78,18 @@ export default class LabelController {
 
       this.temp.project(camera);
 
-      if (this.temp.z < -1 || this.temp.z > 1) {
+      if (this.temp.z <= -1 || this.temp.z >= 1) {
         marker.label.style.display = "none";
         marker.indicator.style.display = "none";
         return;
       }
 
-      marker.label.style.display = "block";
-      marker.indicator.style.display = "block";
+      marker.label.style.display = AppState.get("showLabels")
+        ? "block"
+        : "none";
+      marker.indicator.style.display = AppState.get("showIndicators")
+        ? "block"
+        : "none";
 
       const x = (this.temp.x * 0.5 + 0.5) * window.innerWidth;
       const y = (-this.temp.y * 0.5 + 0.5) * window.innerHeight;

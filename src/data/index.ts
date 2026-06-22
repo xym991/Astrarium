@@ -5,9 +5,11 @@ export const defaultState: AstrariumState = {
   distanceScale: 1,
   cameraMode: "overview",
   focusedBody: null,
-  showOrbitPaths: true,
-  showTrails: false,
+  showOrbits: true,
+  showTrails: true,
   showLabels: true,
+  showMoons: true,
+  showIndicators: true,
   paused: false,
 };
 
@@ -16,8 +18,12 @@ export type NumericKeys = {
   [K in keyof AstrariumState]: AstrariumState[K] extends number ? K : never;
 }[keyof AstrariumState];
 
+export type BooleanKeys = {
+  [K in keyof AstrariumState]: AstrariumState[K] extends boolean ? K : never;
+}[keyof AstrariumState];
+
 export const RANGES: Record<NumericKeys, number[]> = {
-  timeScale: [0.1, 10000, 1],
+  timeScale: [10000, 1000000000, 1],
   distanceScale: [1, 10, 0.00001],
 };
 
@@ -776,21 +782,21 @@ export const solarSystemData = new CelestialBodyData({
     new CelestialBodyData({
       name: "Ceres",
 
+      semiMajorAxis: 414010000,
+      eccentricity: 0.0758,
+      orbitalTilt: 10.593,
+
       ascendingNode: 80.305,
       argumentOfPeriapsis: 73.597,
-      meanAnomalyAtEpoch: 95.989,
+      meanAnomalyAtEpoch: 77.372,
 
       type: "dwarf",
       radius: 473,
       shapeScale: [1, 0.93, 1],
 
-      semiMajorAxis: 413767000,
-      eccentricity: 0.0785,
-
-      orbitalPeriod: 1680,
+      orbitalPeriod: 1681.63,
       rotationPeriod: 0.378,
 
-      orbitalTilt: 10.59,
       axisTilt: 4,
 
       color: "#AEB6C4",

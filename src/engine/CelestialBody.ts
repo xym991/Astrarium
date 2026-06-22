@@ -57,15 +57,20 @@ export class CelestialBody extends CelestialBodyData {
       0,
       0,
     );
+
+    this.orbitalPlaneGroup.rotation.order = "YXZ";
+    this.orbitalGroup.rotation.order = "YXZ";
+
     this.tiltGroup.rotation.z = THREE.MathUtils.degToRad(this.axisTilt);
-    this.orbitalGroup.rotation.y = THREE.MathUtils.degToRad(
-      this.argumentOfPeriapsis,
-    );
-    this.orbitalPlaneGroup.rotation.y = THREE.MathUtils.degToRad(
+
+    this.orbitalPlaneGroup.rotation.y = -THREE.MathUtils.degToRad(
       this.ascendingNode,
     );
     this.orbitalPlaneGroup.rotation.x = THREE.MathUtils.degToRad(
       this.orbitalTilt,
+    );
+    this.orbitalGroup.rotation.y = -THREE.MathUtils.degToRad(
+      this.argumentOfPeriapsis,
     );
 
     this.parent?.group.add(this.orbitalPlaneGroup);
@@ -103,14 +108,33 @@ export class CelestialBody extends CelestialBodyData {
           this.mesh.getWorldPosition(this.tempVector),
         );
 
-        this.trail.line.visible =
-          this.type == "moon"
-            ? shouldShowElement(this, distance, 15, 20)
-            : shouldShowElement(this, distance, 15, 0);
-        this.orbit.visible =
-          this.type == "moon"
-            ? shouldShowElement(this, distance, 100, 20)
-            : shouldShowElement(this, distance, 100, 0);
+        if (this.type === "moon") {
+          if (AppState.get("showMoons")) {
+            this.orbitalGroup.visible = true;
+            this.trail.line.visible = true;
+          } else {
+            this.orbitalGroup.visible = false;
+            this.trail.line.visible = false;
+            return;
+          }
+        }
+
+        if (AppState.get("showTrails")) {
+          this.trail.line.visible =
+            this.type == "moon"
+              ? shouldShowElement(this, distance, 15, 20)
+              : shouldShowElement(this, distance, 15, 0);
+        } else {
+          this.trail.line.visible = false;
+        }
+        if (AppState.get("showOrbits")) {
+          this.orbit.visible =
+            this.type == "moon"
+              ? shouldShowElement(this, distance, 15, 20)
+              : shouldShowElement(this, distance, 15, 0);
+        } else {
+          this.orbit.visible = false;
+        }
       };
     })();
   }
@@ -134,15 +158,11 @@ export class CelestialBody extends CelestialBodyData {
     this.trail.line.material.setCamera(camera);
 
     const pos = this.group.getWorldPosition(this.tempVector);
+
     if (
-      Math.abs(
-        pos.x -
-          this.trail.distance.x +
-          pos.y -
-          this.trail.distance.y +
-          pos.z -
-          this.trail.distance.z,
-      ) < 0.01
+      Math.abs(pos.x - this.trail.distance.x) < 0.001 &&
+      Math.abs(pos.y - this.trail.distance.y) < 0.001 &&
+      Math.abs(pos.z - this.trail.distance.z) < 0.001
     ) {
       return;
     }
@@ -151,10 +171,13 @@ export class CelestialBody extends CelestialBodyData {
 
     let i = this.trail.index * 3;
     let _i = (this.trail.index - this.trail.length) * 3;
-    let { x, y, z } = pos;
-    let [hx, lx] = splitDouble(x);
-    let [hy, ly] = splitDouble(y);
-    let [hz, lz] = splitDouble(z);
+
+    let hx = Math.fround(pos.x);
+    let hy = Math.fround(pos.y);
+    let hz = Math.fround(pos.z);
+    let lx = pos.x - hx;
+    let ly = pos.y - hy;
+    let lz = pos.z - hz;
 
     this.trail.pointsHigh[i] = hx;
     this.trail.pointsHigh[i + 1] = hy;
