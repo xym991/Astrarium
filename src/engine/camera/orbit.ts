@@ -40,7 +40,7 @@ export class OrbitController implements MovementController {
 
     // Zoom
     if (mouse.scrollDelta !== 0) {
-      this.altitude *= 1 + mouse.scrollDelta * 0.0001;
+      this.altitude *= 1 + mouse.scrollDelta * 0.001;
     }
 
     this.altitude = THREE.MathUtils.clamp(
@@ -71,7 +71,8 @@ export class OrbitController implements MovementController {
 
     const moveSpeed =
       (focusedBody.radius * AppState.get("distanceScale") + this.altitude) *
-      delta;
+      delta *
+      0.001;
 
     if (movement.forward)
       this.offset.add(forward.clone().multiplyScalar(-moveSpeed));

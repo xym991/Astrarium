@@ -12,8 +12,8 @@ export class FlightController implements MovementController {
 
   private readonly rotationSensitivity = 0.005;
 
-  private baseAcceleration = 1;
-  private currentAcceleration = 1;
+  private baseAcceleration = 0.001;
+  private currentAcceleration = 0;
 
   private drag = 0.9;
 
@@ -31,6 +31,7 @@ export class FlightController implements MovementController {
   }
 
   update(delta: number, camera: THREE.PerspectiveCamera, input: InputState) {
+    delta = delta / 1000;
     const mouse = input.mouse;
     const movement = input.movement;
 
@@ -90,7 +91,7 @@ export class FlightController implements MovementController {
 
     this.velocity.multiplyScalar(Math.pow(this.drag, delta * 60));
 
-    if (this.velocity.length() < 0.01) {
+    if (this.velocity.length() < 0.00001) {
       this.velocity.set(0, 0, 0);
     } else if (this.velocity.lengthSq() > this.maxVelocity * this.maxVelocity) {
       this.velocity.setLength(this.maxVelocity);

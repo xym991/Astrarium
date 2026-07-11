@@ -15,12 +15,13 @@ import listMeshes from "./utils/listMeshes";
 import Stats from "stats.js";
 import calculateOrbitalPosition from "./utils/calculateorbitalPosition";
 import ClockController from "./clock";
+import Telemetry from "../state/telemetry.svelte";
 
 const maxSolarDriftDistance = 50000;
 const SUN_GALACTIC_SPEED = 19_008_000; // km/day
 
 const stats = new Stats();
-stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+stats.showPanel(0);
 document.body.appendChild(stats.dom);
 
 export class Engine {
@@ -39,9 +40,6 @@ export class Engine {
 
   private animate = () => {
     this.Clock.update();
-    // if (AppState.get("paused")) {
-    //   return requestAnimationFrame(this.animate);
-    // }
     stats.begin();
 
     if (this.SolarSystem.group.position.y > maxSolarDriftDistance)
@@ -50,6 +48,12 @@ export class Engine {
     this.updateScene();
     this.composer.render();
     stats.end();
+    Telemetry.update({
+      currentTime: this.Clock.getTime(),
+      distanceFromSun: this.CameraController.camera.position.distanceTo(
+        this.SolarSystem.group.position,
+      ),
+    });
     requestAnimationFrame(this.animate);
   };
 
@@ -87,8 +91,9 @@ export class Engine {
   updateScene() {
     const distanceScaleChanged = AppState.isDirty("distanceScale");
     const distanceScale = AppState.get("distanceScale");
-
+    const camera = this.CameraController.camera;
     const timeScaleChanged = AppState.isDirty("timeScale");
+    const SolarSystem = this.SolarSystem;
 
     recursiveTransform(this.SolarSystem, (body) => {
       if (distanceScaleChanged) {
@@ -115,17 +120,30 @@ export class Engine {
         });
       }
     });
-    this.SolarSystem.group.position.y +=
+    SolarSystem.group.position.y +=
       SUN_GALACTIC_SPEED *
       this.Clock.getDeltaDays() *
       AppState.get("distanceScale");
 
+    const distance = camera.position.distanceTo(SolarSystem.group.position);
+
+    const fov = THREE.MathUtils.degToRad(camera.fov);
+
+    const projectedRadius =
+      ((SolarSystem.radius * distanceScale) / distance) *
+      (window.innerHeight / (2 * Math.tan(fov / 2)));
+
+    const scale = Math.max(1, 1 / projectedRadius);
+    if (scale > 1) {
+      SolarSystem.mesh.scale.setScalar(scale);
+    }
+
     this.CameraController.update(this.Clock.getDelta());
     this.LabelController.update(this.CameraController.camera);
 
-    recursiveTransform(this.SolarSystem, (body) => {
-      body.postUpdate(this.CameraController.camera);
-      body.updateTrail(this.CameraController.camera);
+    recursiveTransform(SolarSystem, (body) => {
+      body.postUpdate(camera);
+      body.updateTrail(camera);
     });
 
     for (let method in this.updateMethods) {

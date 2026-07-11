@@ -1,5 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
+:root {
+  --primary: rgba(130, 220, 255, 0.3);
+  --primary-faint: rgba(130, 220, 255, 0.15);
+  --primary-strong: rgba(130, 220, 255, 0.6);
+  --primary-full: rgba(130, 220, 255, 0.9);
+}
 body {
   margin: 0;
   padding: 0;
@@ -21,16 +27,6 @@ body {
   width: 100%;
   height: 100%;
 }
-
-/* .marker {
-  position: absolute;
-
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  pointer-events: auto;
-  transform: translate(-50%, -50%);
-} */
 
 .indicator {
   width: 16px;
@@ -72,9 +68,4 @@ body {
   width: fit-content;
   height: fit-content;
   z-index: 10;
-  /* display: none; */
-  /* pointer-events: none; */
-  /* user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none; */
 }

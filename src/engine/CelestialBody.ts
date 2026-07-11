@@ -1,14 +1,11 @@
 import * as THREE from "three";
 import { CelestialBodyData } from "../data";
-import addTextures from "./utils/addTextures";
 import AppState from "../state";
 import createOrbit from "./utils/createOrbit";
 import { Line2 } from "three/addons/lines/Line2.js";
 import createTrail, { type Trail } from "./utils/createTrail";
 import plugins from "./utils/celestialBodyPlugins";
 import shouldShowElement from "./utils/shouldShowElement";
-import { splitVector3 } from "./utils/splitVector3";
-import splitDouble from "./utils/splitDouble";
 
 export class CelestialBody extends CelestialBodyData {
   private static sphereGeometry = new THREE.SphereGeometry(1, 64, 64);
@@ -160,9 +157,9 @@ export class CelestialBody extends CelestialBodyData {
     const pos = this.group.getWorldPosition(this.tempVector);
 
     if (
-      Math.abs(pos.x - this.trail.distance.x) < 0.001 &&
-      Math.abs(pos.y - this.trail.distance.y) < 0.001 &&
-      Math.abs(pos.z - this.trail.distance.z) < 0.001
+      Math.abs(pos.x - this.trail.distance.x) < 0.0001 &&
+      Math.abs(pos.y - this.trail.distance.y) < 0.0001 &&
+      Math.abs(pos.z - this.trail.distance.z) < 0.0001
     ) {
       return;
     }

@@ -15,7 +15,6 @@ export default function calculateOrbitalPosition({
   time,
   target = new THREE.Vector3(),
 }: OrbitalPositionOptions): THREE.Vector3 {
-  console.log(time);
   const { meanAnomalyAtEpoch, eccentricity, semiMajorAxis, orbitalPeriod } =
     body;
 
