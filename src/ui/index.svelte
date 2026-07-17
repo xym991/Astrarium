@@ -24,11 +24,11 @@
     <Toggle {key}></Toggle>
   {/each}
 
-  <!-- <div class="time">
-    {new Date(Telemetry.get("currentTime")).toLocaleDateString() +
+  <div class="time">
+    {new Date(Telemetry.get("currentTime")).toDateString() +
       " " +
       new Date(Telemetry.get("currentTime")).toLocaleTimeString()}
-  </div> -->
+  </div>
 </div>
 
 <style>
@@ -38,6 +38,6 @@
     left: 100px;
     color: var(--primary-full);
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 400;
   }
 </style>

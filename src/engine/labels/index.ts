@@ -65,10 +65,10 @@ export default class LabelController {
 
       camera.getWorldPosition(this.cameraPos);
 
-      const cameraDistance = this.cameraPos.distanceTo(bodyPos);
+      const cameraDistanceSq = this.cameraPos.distanceToSquared(bodyPos);
 
       if (
-        !shouldShowElement(body, cameraDistance) ||
+        !shouldShowElement(body, cameraDistanceSq) ||
         !body.orbitalGroup.visible
       ) {
         marker.label.style.display = "none";
@@ -97,18 +97,6 @@ export default class LabelController {
       marker.indicator.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
       marker.label.style.transform = `translate3d(${x + 16}px, ${y}px, 0) translate(0%, -50%)`;
     });
-  }
-
-  shouldShowLabel(body: CelestialBody, cameraDistance: number) {
-    const bodyRadius = body.radius * AppState.get("distanceScale");
-    const bodyOrbitalRadius =
-      body.semiMajorAxis * AppState.get("distanceScale");
-    if (body.type === "star") return cameraDistance > bodyRadius * 100;
-
-    return (
-      cameraDistance < bodyOrbitalRadius * 20 &&
-      cameraDistance > bodyOrbitalRadius * 0.001 + bodyRadius * 100
-    );
   }
 
   destroy() {

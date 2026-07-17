@@ -1,8 +1,10 @@
 import * as THREE from "three";
-import type { CelestialBodyData } from "../../data";
 import { CelestialBody } from "../CelestialBody";
 export const textureLoader = new THREE.TextureLoader();
-export default function addTextures(body: CelestialBody) {
+export default function addTextures(
+  body: CelestialBody,
+  renderer: THREE.WebGLRenderer,
+) {
   const path = `/textures/${body.name.toLowerCase()}`;
 
   textureLoader.load(
@@ -11,6 +13,10 @@ export default function addTextures(body: CelestialBody) {
       const material = body.mesh.material as THREE.MeshStandardMaterial;
       texture.wrapS = THREE.RepeatWrapping;
       texture.colorSpace = THREE.SRGBColorSpace;
+      texture.generateMipmaps = true;
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
       if (body.type === "star") {
         material.color.set("#ffffff");

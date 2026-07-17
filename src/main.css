@@ -4,7 +4,7 @@
   --primary: rgba(130, 220, 255, 0.3);
   --primary-faint: rgba(130, 220, 255, 0.15);
   --primary-strong: rgba(130, 220, 255, 0.6);
-  --primary-full: rgba(130, 220, 255, 0.9);
+  --primary-full: rgba(130, 220, 255, 1);
 }
 body {
   margin: 0;

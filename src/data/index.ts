@@ -23,7 +23,7 @@ export type BooleanKeys = {
 }[keyof AstrariumState];
 
 export const RANGES: Record<NumericKeys, number[]> = {
-  timeScale: [10000, 1000000000, 1],
+  timeScale: [1000, 10000000, 1],
   distanceScale: [1, 10, 0.00001],
 };
 

@@ -35,6 +35,5 @@ export default function createOrbit(
 
   const orbit = new Line2(geometry, material);
   orbit.computeLineDistances();
-  // orbit.visible = false;
   return orbit;
 }

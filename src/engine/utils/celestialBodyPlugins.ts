@@ -1,28 +1,48 @@
-import type { CelestialBody } from "../CelestialBody";
+import { CelestialBody } from "../CelestialBody";
 import * as THREE from "three";
 import { textureLoader } from "./addTextures";
 
 export interface CelestialBodyPlugins {
-  [key: string]: (body: CelestialBody) => (() => void) | void;
+  [key: string]: (
+    body: CelestialBody,
+  ) => ((body: CelestialBody) => void) | void;
 }
 
 export default {
   saturn: (body: CelestialBody) => {
     let shader: any = null;
 
-    const bodyPos = new THREE.Vector3();
-    const sunPos = new THREE.Vector3();
     const sunDir = new THREE.Vector3();
     const worldQuat = new THREE.Quaternion();
     const inverseQuat = new THREE.Quaternion();
 
-    let root = body;
+    let LOD = body.LOD;
+    const inner = 1.15;
+    const outer = 2.4;
+    const RingGeometries = [
+      new THREE.RingGeometry(inner, outer, 16),
+      new THREE.RingGeometry(inner, outer, 32),
+      new THREE.RingGeometry(inner, outer, 64),
+      new THREE.RingGeometry(inner, outer, 128),
+      new THREE.RingGeometry(inner, outer, 256),
+    ];
 
-    while (root.parent) {
-      root = root.parent;
+    for (let geometry of RingGeometries) {
+      const pos = geometry.attributes.position;
+      const uv = geometry.attributes.uv;
+
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const r = Math.sqrt(x * x + y * y);
+        const t = (r - inner) / (outer - inner);
+        uv.setXY(i, t, 0.5);
+      }
+
+      uv.needsUpdate = true;
     }
 
-    const sun = root;
+    let ring: THREE.Mesh | null = null;
 
     textureLoader.load(
       "/textures/saturn_ring.png",
@@ -31,22 +51,9 @@ export default {
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.wrapS = THREE.ClampToEdgeWrapping;
         texture.wrapT = THREE.ClampToEdgeWrapping;
-        const inner = 1.15;
-        const outer = 2.4;
-        const geometry = new THREE.RingGeometry(inner, outer, 256);
-
-        const pos = geometry.attributes.position;
-        const uv = geometry.attributes.uv;
-
-        for (let i = 0; i < pos.count; i++) {
-          const x = pos.getX(i);
-          const y = pos.getY(i);
-          const r = Math.sqrt(x * x + y * y);
-          const t = (r - inner) / (outer - inner);
-          uv.setXY(i, t, 0.5);
-        }
-
-        uv.needsUpdate = true;
+        texture.generateMipmaps = true;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
 
         const material = new THREE.MeshStandardMaterial({
           map: texture,
@@ -104,7 +111,7 @@ export default {
             );
         };
 
-        const ring = new THREE.Mesh(geometry, material);
+        ring = new THREE.Mesh(RingGeometries[LOD], material);
         ring.rotation.x = Math.PI / 2;
         body.tiltGroup.add(ring);
       },
@@ -116,13 +123,17 @@ export default {
       },
     );
 
-    return () => {
-      if (!shader) return;
+    return (body) => {
+      if (!shader || !ring) return;
+      if (LOD !== body.LOD) {
+        ring.geometry = RingGeometries[body.LOD];
+        LOD = body.LOD;
+      }
 
-      body.group.getWorldPosition(bodyPos);
-      sun.group.getWorldPosition(sunPos);
-
-      sunDir.copy(sunPos).sub(bodyPos).normalize();
+      sunDir
+        .copy(body.parent!.worldPosition)
+        .sub(body.worldPosition)
+        .normalize();
 
       body.tiltGroup.getWorldQuaternion(worldQuat);
 
@@ -130,26 +141,33 @@ export default {
 
       sunDir.applyQuaternion(inverseQuat);
 
-      shader.uniforms.sunDirection.value.copy(sunDir.normalize());
+      shader.uniforms.sunDirection.value.copy(sunDir);
     };
   },
   earth: (body: CelestialBody) => {
     let atmosphere: THREE.Mesh | null = null;
 
-    createAtmosphere(body, "/textures/earth_atmosphere.jpg", 1.01, (mesh) => {
+    createAtmosphere(body, "/textures/earth_atmosphere.jpg", 1.001, (mesh) => {
+      (mesh.material as THREE.MeshStandardMaterial).opacity = 0.9;
       atmosphere = mesh;
       atmosphere.userData = body;
     });
 
     let lastPlanetRotation = body.mesh.rotation.y;
     const atmosphereFactor = 0.05;
+    let LOD = body.LOD;
 
-    return () => {
+    return (body) => {
       if (!atmosphere) return;
       const currentRotation = body.mesh.rotation.y;
       const delta = currentRotation - lastPlanetRotation;
       atmosphere.rotation.y += delta * atmosphereFactor;
       lastPlanetRotation = currentRotation;
+
+      if (LOD !== body.LOD) {
+        atmosphere.geometry = CelestialBody.SphereGeometries[body.LOD];
+        LOD = body.LOD;
+      }
     };
   },
   venus: (body: CelestialBody) => {
@@ -163,13 +181,19 @@ export default {
 
     let lastPlanetRotation = body.mesh.rotation.y;
     const atmosphereFactor = 60;
+    let LOD = body.LOD;
 
-    return () => {
+    return (body) => {
       if (!atmosphere) return;
       const currentRotation = body.mesh.rotation.y;
       const delta = currentRotation - lastPlanetRotation;
       atmosphere.rotation.y += delta * atmosphereFactor;
       lastPlanetRotation = currentRotation;
+
+      if (LOD !== body.LOD) {
+        atmosphere.geometry = CelestialBody.SphereGeometries[body.LOD];
+        LOD = body.LOD;
+      }
     };
   },
 } as CelestialBodyPlugins;
@@ -181,8 +205,11 @@ function createAtmosphere(
   onReady?: (mesh: THREE.Mesh) => void,
 ) {
   textureLoader.load(texturePath, (texture) => {
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
     const atmosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(1, 32, 32),
+      CelestialBody.SphereGeometries[body.LOD],
 
       new THREE.MeshStandardMaterial({
         map: texture,

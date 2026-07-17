@@ -18,9 +18,9 @@
   const cx = $derived(width / 2);
   const cy = $derived(height / 2);
 
-  const hexWidth = $derived(Math.min(width * 0.1, 300));
+  const hexWidth = $derived(Math.min(height * 0.24, width * 0.3));
 
-  const tipOffset = $derived(Math.min(width * 0.3, 900));
+  const tipOffset = $derived(Math.min(height * 0.6, width * 0.9));
 
   const leftX = $derived(cx - hexWidth);
   const rightX = $derived(cx + hexWidth);
@@ -107,9 +107,15 @@
   `}
     />
 
-    <line class="line" x1={cx - ringRadius} y1={cy} x2={0} y2={cy} />
+    <line class="line" x1={cx - ringRadius} y1={cy} x2={MARGIN} y2={cy} />
 
-    <line class="line" x1={cx + ringRadius} y1={cy} x2={width} y2={cy} />
+    <line
+      class="line"
+      x1={cx + ringRadius}
+      y1={cy}
+      x2={width - MARGIN}
+      y2={cy}
+    />
 
     <!-- <line class="line" x1={MARGIN} y1={cy} x2={width - MARGIN} y2={cy} /> -->
     <!-- side connectors -->
