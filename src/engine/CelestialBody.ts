@@ -1,9 +1,6 @@
 import * as THREE from "three";
 import { CelestialBodyData } from "../data";
 import AppState from "../state";
-import createOrbit from "./utils/createOrbit";
-import { Line2 } from "three/addons/lines/Line2.js";
-// import createTrail from "./utils/createTrail";
 import plugins from "./utils/celestialBodyPlugins";
 import shouldShowElement from "./utils/shouldShowElement";
 import {
@@ -30,10 +27,10 @@ export class CelestialBody extends CelestialBodyData {
     new THREE.SphereGeometry(1, 32, 32),
     new THREE.SphereGeometry(1, 64, 64),
     new THREE.SphereGeometry(1, 128, 128),
-    // new THREE.SphereGeometry(1, 256, 256),
+    new THREE.SphereGeometry(1, 256, 256),
   ];
   public static trailMaterial = new HighPrecisionLineMaterial({
-    color: new THREE.Color(0xffffff).multiplyScalar(3),
+    color: new THREE.Color(0xffffff).multiplyScalar(2).convertLinearToSRGB(),
   });
   worldPosition = new THREE.Vector3();
 
@@ -41,16 +38,18 @@ export class CelestialBody extends CelestialBodyData {
   mesh: THREE.Mesh;
   geometry: THREE.BufferGeometry;
   material: THREE.Material;
-
   orbitalPlaneGroup: THREE.Group;
   orbitalGroup: THREE.Group;
   group: THREE.Group;
   tiltGroup: THREE.Group;
-
   parent: CelestialBody | null = null;
-  orbit: Line2;
+  orbit: HighPrecisionLine;
   trail: Trail;
+  orbitGeometries: HighPrecisionLineGeometry[] = [];
+  private orbitPeriapsis = 0;
+  private orbitApoapsis = 0;
   LOD: number = 0;
+  orbitLOD: number = 0;
   postUpdate: (
     camera: THREE.PerspectiveCamera,
     config: { showMoons: boolean; showTrails: boolean; showOrbits: boolean },
@@ -100,10 +99,11 @@ export class CelestialBody extends CelestialBodyData {
     this.parent?.group.add(this.orbitalPlaneGroup);
     this.parent?.children.push(this);
 
-    this.orbit = createOrbit(
-      this.eccentricity,
-      this.type === "planet" ? this.color : 0x555555,
-    );
+    this.orbitPeriapsis = this.semiMajorAxis * (1 - this.eccentricity);
+    this.orbitApoapsis = this.semiMajorAxis * (1 + this.eccentricity);
+
+    this.createOrbitGeometries();
+    this.orbit = this.createOrbit();
     if (this.parent && this.semiMajorAxis > 0) {
       this.orbitalGroup.add(this.orbit);
       this.orbit.userData = this;
@@ -153,6 +153,42 @@ export class CelestialBody extends CelestialBodyData {
         }
       };
     })();
+  }
+
+  private createOrbitGeometries() {
+    const a = 1;
+    const e = this.eccentricity;
+    const b = a * Math.sqrt(1 - e * e);
+
+    for (let lod = 0; lod < 7; lod++) {
+      const segments = 256 << lod;
+      const positions: number[] = [];
+
+      for (let i = 0; i <= segments; i++) {
+        const E = (i / segments) * Math.PI * 2;
+        positions.push(a * (Math.cos(E) - e), 0, b * Math.sin(E));
+      }
+
+      this.orbitGeometries.push(
+        new HighPrecisionLineGeometry({
+          positions,
+        }),
+      );
+    }
+  }
+
+  private createOrbit() {
+    const geometry = this.orbitGeometries[this.orbitLOD];
+
+    const material = new HighPrecisionLineMaterial({
+      color: new THREE.Color(this.type === "planet" ? this.color : 0x555555)
+        .multiplyScalar(10)
+        .convertLinearToSRGB(),
+      transparent: true,
+      opacity: 0.8,
+    });
+
+    return new HighPrecisionLine(geometry, material);
   }
 
   createTrail() {
@@ -334,5 +370,36 @@ export class CelestialBody extends CelestialBodyData {
       this.mesh.geometry = CelestialBody.SphereGeometries[LOD];
     }
     this.LOD = LOD;
+
+    if (!this.parent) return;
+
+    const orbitCenter = this.parent.worldPosition;
+
+    const cameraDistance = camera.position.distanceTo(orbitCenter);
+
+    const periapsis = this.orbitPeriapsis * distanceScale;
+    const apoapsis = this.orbitApoapsis * distanceScale;
+
+    let distanceFromBand = 0;
+
+    if (cameraDistance < periapsis) {
+      distanceFromBand = periapsis - cameraDistance;
+    } else if (cameraDistance > apoapsis) {
+      distanceFromBand = cameraDistance - apoapsis;
+    }
+
+    let orbitLOD = 6;
+
+    if (distanceFromBand > 50) {
+      orbitLOD = Math.max(
+        0,
+        Math.min(6, 6 - Math.floor(Math.log2((distanceFromBand - 50) / 8 + 1))),
+      );
+    }
+
+    if (this.orbitLOD !== orbitLOD) {
+      this.orbit.geometry = this.orbitGeometries[orbitLOD];
+      this.orbitLOD = orbitLOD;
+    }
   }
 }

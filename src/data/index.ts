@@ -778,30 +778,30 @@ export const solarSystemData = new CelestialBodyData({
         }),
       ),
   )
-  .addChild(
-    new CelestialBodyData({
-      name: "Ceres",
+  // .addChild(
+  //   new CelestialBodyData({
+  //     name: "Ceres",
 
-      semiMajorAxis: 414010000,
-      eccentricity: 0.0758,
-      orbitalTilt: 10.593,
+  //     semiMajorAxis: 414010000,
+  //     eccentricity: 0.0758,
+  //     orbitalTilt: 10.593,
 
-      ascendingNode: 80.305,
-      argumentOfPeriapsis: 73.597,
-      meanAnomalyAtEpoch: 77.372,
+  //     ascendingNode: 80.305,
+  //     argumentOfPeriapsis: 73.597,
+  //     meanAnomalyAtEpoch: 77.372,
 
-      type: "dwarf",
-      radius: 473,
-      shapeScale: [1, 0.93, 1],
+  //     type: "dwarf",
+  //     radius: 473,
+  //     shapeScale: [1, 0.93, 1],
 
-      orbitalPeriod: 1681.63,
-      rotationPeriod: 0.378,
+  //     orbitalPeriod: 1681.63,
+  //     rotationPeriod: 0.378,
 
-      axisTilt: 4,
+  //     axisTilt: 4,
 
-      color: "#AEB6C4",
-    }),
-  )
+  //     color: "#AEB6C4",
+  //   }),
+  // )
   .addChild(
     new CelestialBodyData({
       name: "Pluto",

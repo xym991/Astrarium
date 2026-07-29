@@ -155,9 +155,9 @@ export class Engine {
   }
 
   updateTrails() {
-    this.SolarSystem.trail.line.material.setCamera(
-      this.CameraController.camera,
-    );
+    // this.SolarSystem.trail.line.material.setCamera(
+    //   this.CameraController.camera,
+    // );
     for (let body of this.CelestianBodyArray) {
       body.updateTrail();
     }
@@ -240,8 +240,8 @@ export class Engine {
     light.castShadow = true;
     light.position.set(0, 0, 0);
     this.SolarSystem.group.add(light);
-    const ambientLight = new THREE.AmbientLight("#ffffff", 0.1);
-    this.scene.add(ambientLight);
+    // const ambientLight = new THREE.AmbientLight("#ffffff", 0.1);
+    // this.scene.add(ambientLight);
   }
 
   initRenderer() {

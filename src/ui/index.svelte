@@ -15,7 +15,7 @@
 </script>
 
 <div class="ui-main">
-  <HUD />
+  <!-- <HUD /> -->
   {#each numericKeys as key}
     <Slider {key}></Slider>
   {/each}

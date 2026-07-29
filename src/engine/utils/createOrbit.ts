@@ -1,39 +1,35 @@
 import * as THREE from "three";
 
-import { Line2 } from "three/addons/lines/Line2.js";
-import { LineMaterial } from "three/addons/lines/LineMaterial.js";
-import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+import {
+  HighPrecisionLine,
+  HighPrecisionLineGeometry,
+  HighPrecisionLineMaterial,
+} from "three-high-precision-lines";
+
 export default function createOrbit(
   eccentricity: number,
-  color?: number | string,
+  color: number | string = 0x555555,
 ) {
-  if (!color) color = 0x555555;
-
   const positions: number[] = [];
 
   const a = 1;
   const e = eccentricity;
   const b = a * Math.sqrt(1 - e * e);
 
-  for (let i = 0; i <= 8192; i++) {
+  for (let i = 0; i <= 16384; i++) {
     const E = (i / 8192) * Math.PI * 2;
 
     positions.push(a * (Math.cos(E) - e), 0, b * Math.sin(E));
   }
 
-  const geometry = new LineGeometry();
-  geometry.setPositions(positions);
-
-  const material = new LineMaterial({
-    color: new THREE.Color(color).convertLinearToSRGB(),
-    linewidth: 2,
-    transparent: true,
-    opacity: 0.5,
+  const geometry = new HighPrecisionLineGeometry({
+    positions,
   });
 
-  material.resolution.set(window.innerWidth, window.innerHeight);
+  const material = new HighPrecisionLineMaterial({
+    color: new THREE.Color(color).multiplyScalar(6).convertLinearToSRGB(),
+    opacity: 1,
+  });
 
-  const orbit = new Line2(geometry, material);
-  orbit.computeLineDistances();
-  return orbit;
+  return new HighPrecisionLine(geometry, material);
 }
