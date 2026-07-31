@@ -4,10 +4,10 @@
   import Settings from "./Settings/Settings.svelte";
 </script>
 
-<div class="ui-main">
+<div class="fixed inset-0 z-10 flex items-center justify-center pointer-events-none">
   <HUD />
 
-  <div class="time">
+  <div class="fixed top-5 left-[6.25rem] font-normal text-[0.875rem] text-[var(--primary-full)]">
     {new Date(Telemetry.get("currentTime")).toDateString() +
       " " +
       new Date(Telemetry.get("currentTime")).toLocaleTimeString()}
@@ -16,24 +16,3 @@
 <div>
   <Settings />
 </div>
-
-<style>
-  .time {
-    position: fixed;
-    top: 20px;
-    left: 100px;
-    color: var(--primary-full);
-    font-size: 14px;
-    font-weight: 400;
-  }
-
-  .ui-main {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-</style>

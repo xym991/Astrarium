@@ -33,11 +33,13 @@ export default class LabelController {
 
   addBody(body: CelestialBody) {
     const indicator = document.createElement("div");
-    indicator.className = "indicator";
+    indicator.className =
+      "absolute z-[1] h-4 w-4 shrink-0 cursor-pointer select-none rounded-full border-2 border-white pointer-events-auto";
     indicator.style.borderColor = body.color;
 
     const label = document.createElement("div");
-    label.className = "label";
+    label.className =
+      "absolute z-[1] shrink-0 cursor-pointer select-none whitespace-nowrap font-medium text-[0.9375rem] tracking-[0.15em] text-white pointer-events-auto";
     label.textContent = body.name.toUpperCase();
 
     this.container.appendChild(indicator);

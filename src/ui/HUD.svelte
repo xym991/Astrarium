@@ -33,8 +33,8 @@
   const corner = 48;
 </script>
 
-<div class="hud">
-  <svg class="frame" viewBox={`0 0 ${width} ${height}`}>
+<div class="fixed inset-0 z-[1000] pointer-events-none">
+  <svg class="absolute inset-0 h-full w-full" viewBox={`0 0 ${width} ${height}`}>
     <defs>
       <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
         <feGaussianBlur stdDeviation="2" result="blur" />
@@ -51,13 +51,13 @@
       y={MARGIN}
       width={width - MARGIN * 2}
       height={height - MARGIN * 2}
-      class="line"
+      class="fill-none stroke-[var(--primary)] [stroke-width:1]"
     />
 
     <!-- corner accents -->
 
     <path
-      class="line strong"
+      class="fill-none stroke-[var(--primary-strong)] [stroke-width:1]"
       d={`
         M ${MARGIN} ${corner}
         V ${MARGIN}
@@ -66,7 +66,7 @@
     />
 
     <path
-      class="line strong"
+      class="fill-none stroke-[var(--primary-strong)] [stroke-width:1]"
       d={`
         M ${width - corner} ${MARGIN}
         H ${width - MARGIN}
@@ -75,7 +75,7 @@
     />
 
     <path
-      class="line strong"
+      class="fill-none stroke-[var(--primary-strong)] [stroke-width:1]"
       d={`
         M ${MARGIN} ${height - corner}
         V ${height - MARGIN}
@@ -84,7 +84,7 @@
     />
 
     <path
-      class="line strong"
+      class="fill-none stroke-[var(--primary-strong)] [stroke-width:1]"
       d={`
         M ${width - corner} ${height - MARGIN}
         H ${width - MARGIN}
@@ -95,7 +95,7 @@
     <!-- center structure -->
 
     <path
-      class="line"
+      class="fill-none stroke-[var(--primary)] [stroke-width:1]"
       d={`
     M ${leftX} ${MARGIN}
     L ${leftTipX} ${cy}
@@ -107,109 +107,38 @@
   `}
     />
 
-    <line class="line" x1={cx - ringRadius} y1={cy} x2={MARGIN} y2={cy} />
+    <line class="fill-none stroke-[var(--primary)] [stroke-width:1]" x1={cx - ringRadius} y1={cy} x2={MARGIN} y2={cy} />
 
     <line
-      class="line"
+      class="fill-none stroke-[var(--primary)] [stroke-width:1]"
       x1={cx + ringRadius}
       y1={cy}
       x2={width - MARGIN}
       y2={cy}
     />
 
-    <circle class="line strong" {cx} {cy} r={ringRadius} />
+    <circle class="fill-none stroke-[var(--primary-strong)] [stroke-width:1]" {cx} {cy} r={ringRadius} />
 
-    <circle class="line faint" {cx} {cy} r={ringRadius * 0.7} />
+    <circle class="fill-none stroke-[var(--primary-faint)] [stroke-width:1]" {cx} {cy} r={ringRadius * 0.7} />
   </svg>
 
-  <div class="top-left">
+  <div class="absolute top-8 left-8 pointer-events-auto">
     <slot name="top-left" />
   </div>
 
-  <div class="top-right">
+  <div class="absolute top-8 right-8 pointer-events-auto">
     <slot name="top-right" />
   </div>
 
-  <div class="bottom-left">
+  <div class="absolute bottom-12 left-12 pointer-events-auto">
     <slot name="bottom-left" />
   </div>
 
-  <div class="bottom-center">
+  <div class="absolute bottom-12 left-1/2 pointer-events-auto -translate-x-1/2">
     <slot name="bottom-center" />
   </div>
 
-  <div class="bottom-right">
+  <div class="absolute right-12 bottom-12 pointer-events-auto">
     <slot name="bottom-right" />
   </div>
 </div>
-
-<style>
-  .hud {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1000;
-  }
-
-  .frame {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .line {
-    fill: none;
-    stroke: var(--primary);
-    stroke-width: 1;
-    /* filter: url(#glow); */
-  }
-
-  .line.strong {
-    stroke: var(--primary-strong);
-  }
-
-  .line.faint {
-    stroke: var(--primary-faint);
-  }
-
-  .dot {
-    fill: var(--primary-full);
-    filter: url(#glow);
-  }
-
-  .top-left,
-  .top-right,
-  .bottom-left,
-  .bottom-center,
-  .bottom-right {
-    position: absolute;
-    pointer-events: auto;
-  }
-
-  .top-left {
-    top: 32px;
-    left: 32px;
-  }
-
-  .top-right {
-    top: 32px;
-    right: 32px;
-  }
-
-  .bottom-left {
-    bottom: 48px;
-    left: 48px;
-  }
-
-  .bottom-center {
-    left: 50%;
-    bottom: 48px;
-    transform: translateX(-50%);
-  }
-
-  .bottom-right {
-    right: 48px;
-    bottom: 48px;
-  }
-</style>
