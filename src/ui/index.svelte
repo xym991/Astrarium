@@ -1,34 +1,20 @@
 <script lang="ts">
-  import AppState, { type AstrariumState } from "../state";
   import HUD from "./HUD.svelte";
-  import Slider from "./slider.svelte";
-  import Toggle from "./toggle.svelte";
-
   import Telemetry from "../state/telemetry.svelte";
-
-  const numericKeys = AppState.keys().filter((key) => {
-    return typeof AppState.get(key as keyof AstrariumState) === "number";
-  });
-  const booleanKeys = AppState.keys().filter((key) => {
-    return typeof AppState.get(key as keyof AstrariumState) === "boolean";
-  });
+  import Settings from "./Settings/Settings.svelte";
 </script>
 
 <div class="ui-main">
-  <!-- <HUD /> -->
-  {#each numericKeys as key}
-    <Slider {key}></Slider>
-  {/each}
-
-  {#each booleanKeys as key}
-    <Toggle {key}></Toggle>
-  {/each}
+  <HUD />
 
   <div class="time">
     {new Date(Telemetry.get("currentTime")).toDateString() +
       " " +
       new Date(Telemetry.get("currentTime")).toLocaleTimeString()}
   </div>
+</div>
+<div>
+  <Settings />
 </div>
 
 <style>
@@ -39,5 +25,15 @@
     color: var(--primary-full);
     font-size: 14px;
     font-weight: 400;
+  }
+
+  .ui-main {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

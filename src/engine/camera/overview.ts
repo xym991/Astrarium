@@ -103,8 +103,6 @@ export class OverviewController implements MovementController {
       );
     }
 
-    // this.maxDistance = body.radius * AppState.get("distanceScale") * 1000;
-
     this.orientation.multiply(
       new THREE.Quaternion().setFromEuler(
         new THREE.Euler(

@@ -38,6 +38,9 @@ export class InputController {
   private canvas: HTMLCanvasElement;
   private movementState: typeof movementState;
   private mouseState: typeof mouseState;
+  private lastTouchX = 0;
+  private lastTouchY = 0;
+  private lastPinchDistance = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -68,6 +71,74 @@ export class InputController {
     this.canvas.addEventListener("wheel", (e) => {
       this.mouseState.scrollDelta = e.deltaY;
     });
+    this.canvas.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault();
+
+        if (e.touches.length === 1) {
+          const touch = e.touches[0];
+          this.lastTouchX = touch.clientX;
+          this.lastTouchY = touch.clientY;
+          this.mouseState.primaryMouse = true;
+        } else if (e.touches.length === 2) {
+          this.mouseState.primaryMouse = false;
+
+          const [a, b] = e.touches;
+          this.lastPinchDistance = Math.hypot(
+            b.clientX - a.clientX,
+            b.clientY - a.clientY,
+          );
+        }
+      },
+      { passive: false },
+    );
+
+    this.canvas.addEventListener(
+      "touchmove",
+      (e) => {
+        e.preventDefault();
+
+        if (e.touches.length === 1) {
+          const touch = e.touches[0];
+
+          this.mouseState.mouseDeltaX = touch.clientX - this.lastTouchX;
+          this.mouseState.mouseDeltaY = touch.clientY - this.lastTouchY;
+
+          this.lastTouchX = touch.clientX;
+          this.lastTouchY = touch.clientY;
+        } else if (e.touches.length === 2) {
+          const [a, b] = e.touches;
+
+          const distance = Math.hypot(
+            b.clientX - a.clientX,
+            b.clientY - a.clientY,
+          );
+
+          this.mouseState.scrollDelta = this.lastPinchDistance - distance;
+          this.lastPinchDistance = distance;
+        }
+      },
+      { passive: false },
+    );
+
+    this.canvas.addEventListener(
+      "touchend",
+      (e) => {
+        e.preventDefault();
+
+        if (e.touches.length === 0) {
+          this.mouseState.primaryMouse = false;
+          this.lastPinchDistance = 0;
+        } else if (e.touches.length === 1) {
+          const touch = e.touches[0];
+          this.lastTouchX = touch.clientX;
+          this.lastTouchY = touch.clientY;
+          this.mouseState.primaryMouse = true;
+        }
+      },
+      { passive: false },
+    );
   }
   private handleKeys(key: string, val: boolean) {
     const binding = bindings[key];

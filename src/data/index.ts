@@ -1,19 +1,5 @@
 import type { AstrariumState } from "../state";
 
-export const defaultState: AstrariumState = {
-  timeScale: 1,
-  distanceScale: 1,
-  cameraMode: "overview",
-  focusedBody: null,
-  showOrbits: true,
-  showTrails: true,
-  showLabels: true,
-  showMoons: true,
-  showIndicators: true,
-  paused: false,
-};
-
-export type cameraMode = "overview" | "orbit" | "flight";
 export type NumericKeys = {
   [K in keyof AstrariumState]: AstrariumState[K] extends number ? K : never;
 }[keyof AstrariumState];
@@ -22,12 +8,17 @@ export type BooleanKeys = {
   [K in keyof AstrariumState]: AstrariumState[K] extends boolean ? K : never;
 }[keyof AstrariumState];
 
-export const RANGES: Record<NumericKeys, number[]> = {
-  timeScale: [1000, 10000000, 1],
-  distanceScale: [1, 10, 0.00001],
-};
+// export const RANGES: Record<NumericKeys, number[]> = {
+//   timeScale: [1000, 10000000, 1],
+//   distanceScale: [1, 10, 0.00001],
+// };
 
-type CelestialBodyType = "star" | "planet" | "moon" | "asteroid" | "dwarf";
+export type CelestialBodyType =
+  | "star"
+  | "planet"
+  | "moon"
+  | "asteroid"
+  | "dwarf";
 
 export interface CelestialBodydataInterface {
   name: string;

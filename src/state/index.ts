@@ -1,4 +1,3 @@
-import { defaultState, type cameraMode } from "../data";
 import type { CelestialBody } from "../engine/CelestialBody";
 
 export interface AstrariumState {
@@ -13,6 +12,29 @@ export interface AstrariumState {
   showIndicators: boolean;
   paused: boolean;
 }
+
+export const toggleShortcuts: Partial<Record<keyof AstrariumState, string>> = {
+  showOrbits: "O",
+  showIndicators: "I",
+  showMoons: "M",
+  showLabels: "L",
+  showTrails: "T",
+};
+
+export const defaultState: AstrariumState = {
+  timeScale: 1,
+  distanceScale: 0.00001,
+  cameraMode: "overview",
+  focusedBody: null,
+  showOrbits: true,
+  showTrails: true,
+  showLabels: true,
+  showMoons: true,
+  showIndicators: true,
+  paused: false,
+};
+
+export type cameraMode = "overview" | "orbit" | "flight";
 
 type DirtyState = Record<keyof AstrariumState, boolean>;
 

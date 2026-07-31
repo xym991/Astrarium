@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { cameraMode } from "../../data";
+import type { cameraMode } from "../../state";
 import { InputController } from "./inputController";
 import AppState from "../../state";
 import type { CelestialBody } from "../CelestialBody";

@@ -97,13 +97,7 @@ export class OrbitController implements MovementController {
     this.altitude = radius * 0.5;
     this.minAltitude = radius * 0.2;
     this.maxAltitude = radius * 10;
-    this.offset.set(
-      -(radius + this.altitude),
-      // radius + this.altitude,
-      0,
-      // radius + this.altitude,
-      0,
-    );
+    this.offset.set(-(radius + this.altitude), 0, 0);
   }
 
   exit() {}

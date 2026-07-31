@@ -117,15 +117,6 @@
       y2={cy}
     />
 
-    <!-- <line class="line" x1={MARGIN} y1={cy} x2={width - MARGIN} y2={cy} /> -->
-    <!-- side connectors -->
-
-    <!-- <line class="line" x1={MARGIN} y1={cy} x2={leftTipX} y2={cy} />
-
-    <line class="line" x1={rightTipX} y1={cy} x2={width - MARGIN} y2={cy} /> -->
-
-    <!-- center ring -->
-
     <circle class="line strong" {cx} {cy} r={ringRadius} />
 
     <circle class="line faint" {cx} {cy} r={ringRadius * 0.7} />

@@ -153,6 +153,10 @@ export class CelestialBody extends CelestialBodyData {
         }
       };
     })();
+
+    const distanceScale = AppState.get("distanceScale");
+    this.setBodyScale(distanceScale);
+    this.setOrbitScale(distanceScale);
   }
 
   private createOrbitGeometries() {
@@ -182,7 +186,7 @@ export class CelestialBody extends CelestialBodyData {
 
     const material = new HighPrecisionLineMaterial({
       color: new THREE.Color(this.type === "planet" ? this.color : 0x555555)
-        .multiplyScalar(10)
+        .multiplyScalar(15)
         .convertLinearToSRGB(),
       transparent: true,
       opacity: 0.8,
@@ -390,10 +394,10 @@ export class CelestialBody extends CelestialBodyData {
 
     let orbitLOD = 6;
 
-    if (distanceFromBand > 50) {
+    if (distanceFromBand > 30) {
       orbitLOD = Math.max(
         0,
-        Math.min(6, 6 - Math.floor(Math.log2((distanceFromBand - 50) / 8 + 1))),
+        Math.min(6, 6 - Math.floor(Math.log2((distanceFromBand - 30) / 8 + 1))),
       );
     }
 

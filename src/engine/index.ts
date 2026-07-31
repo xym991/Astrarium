@@ -109,6 +109,9 @@ export class Engine {
     this.initWindowEventListeners();
     this.initCanvasClickListeners();
     this.updateBackground = this.initBackground();
+
+    AppState.set("focusedBody", this.SolarSystem);
+
     this.animate();
   }
 
@@ -155,9 +158,6 @@ export class Engine {
   }
 
   updateTrails() {
-    // this.SolarSystem.trail.line.material.setCamera(
-    //   this.CameraController.camera,
-    // );
     for (let body of this.CelestianBodyArray) {
       body.updateTrail();
     }
@@ -240,8 +240,6 @@ export class Engine {
     light.castShadow = true;
     light.position.set(0, 0, 0);
     this.SolarSystem.group.add(light);
-    // const ambientLight = new THREE.AmbientLight("#ffffff", 0.1);
-    // this.scene.add(ambientLight);
   }
 
   initRenderer() {
@@ -295,10 +293,6 @@ export class Engine {
       body.group.position.set(0, 0, 0);
       this.scene.add(body.group);
       this.SolarSystem = body;
-
-      setTimeout(() => {
-        AppState.set("focusedBody", this.SolarSystem);
-      }, 0);
     }
   }
 
