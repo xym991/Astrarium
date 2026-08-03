@@ -22,6 +22,11 @@ export default class Clock {
     this.time += this.delta * AppState.get("timeScale");
     this.timestamp = now;
   }
+  reset() {
+    this.time = Date.now();
+    this.timestamp = performance.now();
+    this.delta = 0;
+  }
   getTime() {
     return this.time;
   }

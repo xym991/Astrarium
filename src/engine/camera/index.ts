@@ -1,12 +1,12 @@
 import * as THREE from "three";
-import type { cameraMode } from "../../state";
-import { InputController } from "./inputController";
+import type { CameraMode } from "../../state";
 import AppState from "../../state";
 import type { CelestialBody } from "../CelestialBody";
-import type { InputState } from "./inputController";
+import type { InputState } from "../Input/inputController";
 import { OverviewController } from "./overview";
 import { OrbitController } from "./orbit";
 import { FlightController } from "./flight";
+import type InputController from "../Input/inputController";
 
 export interface MovementController {
   enter(camera?: THREE.PerspectiveCamera): MovementController;
@@ -19,34 +19,67 @@ export interface MovementController {
 
   exit(): void;
 }
+
+const initFunctions: Record<
+  CameraMode,
+  {
+    init: (camera: THREE.PerspectiveCamera) => MovementController;
+    pointerCaptured: boolean;
+  }
+> = {
+  overview: {
+    init: (camera: THREE.PerspectiveCamera) =>
+      new OverviewController().enter(camera),
+    pointerCaptured: false,
+  },
+  orbit: {
+    init: (camera: THREE.PerspectiveCamera) =>
+      new OrbitController().enter(camera),
+    pointerCaptured: true,
+  },
+  flight: {
+    init: (camera: THREE.PerspectiveCamera) =>
+      new FlightController().enter(camera),
+    pointerCaptured: true,
+  },
+};
 export default class CameraController {
   private static instance: CameraController;
   public readonly camera: THREE.PerspectiveCamera;
 
-  public mode = "overview";
+  public mode: CameraMode = "overview";
   public defaultTarget: CelestialBody;
 
   private inputController: InputController;
   private movementController: MovementController;
 
-  private constructor(canvas: HTMLCanvasElement, defaultTarget: CelestialBody) {
+  private constructor(
+    InputController: InputController,
+    defaultTarget: CelestialBody,
+  ) {
     this.camera = new THREE.PerspectiveCamera(
       50,
       window.innerWidth / window.innerHeight,
       0.001,
       1000000,
     );
-    this.inputController = new InputController(canvas);
+    this.inputController = InputController;
     this.movementController = new OverviewController();
     this.defaultTarget = defaultTarget;
     this.camera.position.set(0, 500, 1000);
+
+    // this.listenForPointerRelease();
   }
+
   public static getInstance(
-    canvas: HTMLCanvasElement,
+    InputController: InputController,
     defaultTarget: CelestialBody,
   ): CameraController {
     if (!CameraController.instance) {
-      CameraController.instance = new CameraController(canvas, defaultTarget);
+      CameraController.instance = new CameraController(
+        InputController,
+        defaultTarget,
+      );
     }
 
     return CameraController.instance;
@@ -56,7 +89,7 @@ export default class CameraController {
     this.movementController.update(
       delta,
       this.camera,
-      this.inputController.getState(),
+      this.inputController.getInputState(),
     );
     this.inputController.endFrame();
     this.camera.updateProjectionMatrix();
@@ -65,23 +98,18 @@ export default class CameraController {
   public getCamera(): THREE.PerspectiveCamera {
     return this.camera;
   }
-  public setMode(mode: cameraMode) {
+  public setMode(mode: CameraMode) {
     if (mode === this.mode) return;
     else this.mode = mode;
     this.movementController.exit();
     if (!AppState.get("focusedBody"))
       AppState.set("focusedBody", this.defaultTarget);
-    switch (this.mode) {
-      case "overview":
-        this.movementController = new OverviewController().enter(this.camera);
-        break;
-      case "orbit":
-        this.movementController = new OrbitController().enter(this.camera);
-        break;
-      case "flight":
-        this.movementController = new FlightController().enter(this.camera);
-        AppState.set("focusedBody", null);
-        break;
+    const { init, pointerCaptured } = initFunctions[mode];
+    this.movementController = init(this.camera);
+    if (pointerCaptured) {
+      this.inputController.capturePointer();
+    } else {
+      this.inputController.releasePointer();
     }
   }
 }

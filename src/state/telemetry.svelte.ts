@@ -1,9 +1,12 @@
+import type { CameraMode } from ".";
 import type { CelestialBody } from "../engine/CelestialBody";
 
 export interface TelemetryState {
   currentTime: number;
   distanceFromSun: number;
   focusedBody: CelestialBody | null;
+  timeScale: number;
+  cameraMode: CameraMode;
 }
 
 class Telemetry {
@@ -14,6 +17,8 @@ class Telemetry {
     currentTime: Date.now(),
     distanceFromSun: 0,
     focusedBody: null,
+    timeScale: 1,
+    cameraMode: "overview",
   });
 
   private constructor() {}

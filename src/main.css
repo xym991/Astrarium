@@ -18,7 +18,7 @@
   font-size: 16px;
 }
 
-@media (max-width: 1199px) {
+/* @media (max-width: 1199px) {
   :root {
     font-size: 14px;
   }
@@ -28,7 +28,7 @@
   :root {
     font-size: 12px;
   }
-}
+} */
 
 body {
   margin: 0;
@@ -41,4 +41,12 @@ body {
   height: 100vh;
   background: #000;
   font-family: "Oxanium", "Inter", Verdana, Geneva, Tahoma, sans-serif;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--primary);
 }

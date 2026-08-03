@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type { CelestialBody } from "../CelestialBody";
-import type { InputState } from "./inputController";
+import type { InputState } from "../Input/inputController";
 import AppState from "../../state";
 import { getBodyWorldPosition, getDefaultViewingDistance } from "./shared";
 import type { MovementController } from ".";

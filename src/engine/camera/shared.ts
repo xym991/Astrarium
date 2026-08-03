@@ -1,7 +1,7 @@
 import type { CelestialBody } from "../CelestialBody";
 import * as THREE from "three";
 import AppState from "../../state";
-import type { InputState } from "./inputController";
+import type { InputState } from "../Input/inputController";
 
 export function getBodyWorldPosition(body: CelestialBody) {
   const target = new THREE.Vector3();

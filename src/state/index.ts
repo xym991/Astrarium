@@ -3,7 +3,7 @@ import type { CelestialBody } from "../engine/CelestialBody";
 export interface AstrariumState {
   timeScale: number;
   distanceScale: number;
-  cameraMode: cameraMode;
+  cameraMode: CameraMode;
   focusedBody: CelestialBody | null;
   showOrbits: boolean;
   showTrails: boolean;
@@ -21,7 +21,7 @@ export const toggleShortcuts: Partial<Record<keyof AstrariumState, string>> = {
   showTrails: "T",
 };
 
-export const defaultState: AstrariumState = {
+export const defaultAppState: AstrariumState = {
   timeScale: 1,
   distanceScale: 0.00001,
   cameraMode: "overview",
@@ -34,7 +34,7 @@ export const defaultState: AstrariumState = {
   paused: false,
 };
 
-export type cameraMode = "overview" | "orbit" | "flight";
+export type CameraMode = "overview" | "orbit" | "flight";
 
 type DirtyState = Record<keyof AstrariumState, boolean>;
 
@@ -47,10 +47,10 @@ class AppState {
     [K in keyof AstrariumState]?: Set<Listener>;
   } = {};
 
-  private state: AstrariumState = { ...defaultState };
+  private state: AstrariumState = { ...defaultAppState };
 
   private dirty: DirtyState = Object.fromEntries(
-    Object.keys(defaultState).map((key) => [key, false]),
+    Object.keys(defaultAppState).map((key) => [key, false]),
   ) as DirtyState;
 
   private constructor() {}

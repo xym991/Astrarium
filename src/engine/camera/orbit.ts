@@ -1,7 +1,6 @@
-// import type { ControllerContext } from "./index";
 import * as THREE from "three";
 import type { CelestialBody } from "../CelestialBody";
-import type { InputState } from "./inputController";
+import type { InputState } from "../Input/inputController";
 import AppState from "../../state";
 import { getBodyWorldPosition } from "./shared";
 import type { MovementController } from "./index";
@@ -31,7 +30,7 @@ export class OrbitController implements MovementController {
     const mouse = input.mouse;
     const movement = input.movement;
     // Rotation
-    if (mouse.primaryMouse) {
+    if (mouse.isCaptured) {
       this.yaw -= mouse.mouseDeltaX * this.rotationSensitivity;
       this.pitch -= mouse.mouseDeltaY * this.rotationSensitivity;
     }

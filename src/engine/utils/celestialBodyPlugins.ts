@@ -25,6 +25,7 @@ export default {
       new THREE.RingGeometry(inner, outer, 64),
       new THREE.RingGeometry(inner, outer, 128),
       new THREE.RingGeometry(inner, outer, 256),
+      new THREE.RingGeometry(inner, outer, 512),
     ];
 
     for (let geometry of RingGeometries) {

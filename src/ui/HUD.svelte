@@ -34,7 +34,10 @@
 </script>
 
 <div class="fixed inset-0 z-[1000] pointer-events-none">
-  <svg class="absolute inset-0 h-full w-full" viewBox={`0 0 ${width} ${height}`}>
+  <svg
+    class="absolute inset-0 h-full w-full"
+    viewBox={`0 0 ${width} ${height}`}
+  >
     <defs>
       <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
         <feGaussianBlur stdDeviation="2" result="blur" />
@@ -93,7 +96,7 @@
     />
 
     <!-- center structure -->
-
+    <!-- 
     <path
       class="fill-none stroke-[var(--primary)] [stroke-width:1]"
       d={`
@@ -115,11 +118,21 @@
       y1={cy}
       x2={width - MARGIN}
       y2={cy}
+    /> -->
+
+    <!-- <circle
+      class="fill-none stroke-[var(--primary-strong)] [stroke-width:1]"
+      {cx}
+      {cy}
+      r={ringRadius}
     />
 
-    <circle class="fill-none stroke-[var(--primary-strong)] [stroke-width:1]" {cx} {cy} r={ringRadius} />
-
-    <circle class="fill-none stroke-[var(--primary-faint)] [stroke-width:1]" {cx} {cy} r={ringRadius * 0.7} />
+    <circle
+      class="fill-none stroke-[var(--primary-faint)] [stroke-width:1]"
+      {cx}
+      {cy}
+      r={ringRadius * 0.7}
+    /> -->
   </svg>
 
   <div class="absolute top-8 left-8 pointer-events-auto">

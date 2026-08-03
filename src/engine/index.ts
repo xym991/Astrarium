@@ -11,102 +11,99 @@ import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js"
 import { FXAAPass } from "three/examples/jsm/Addons.js";
 import LabelController from "./labels";
 import addTextures from "./utils/addTextures";
-import Stats from "stats.js";
 import ClockController from "./clock";
 import Telemetry from "../state/telemetry.svelte";
+import InputController from "./Input/inputController";
 
 const maxSolarDriftDistance = 50000;
 const SUN_GALACTIC_SPEED = 19_008_000; // km/day
 
-let num = 0;
-
 let FOCAL_LENGTH = 0;
 
-const stats = new Stats();
-stats.showPanel(0);
-document.body.appendChild(stats.dom);
+export default class Engine {
+  public static instance: Engine;
 
-export class Engine {
   declare private canvas: HTMLCanvasElement;
   declare private scene: THREE.Scene;
   declare private renderer: THREE.WebGLRenderer;
   declare private composer: EffectComposer;
   declare private SolarSystem: CelestialBody;
 
-  declare private CameraController: CameraController;
-  declare private LabelController: LabelController;
-  declare private Clock: ClockController;
+  declare public cameraController: CameraController;
+  declare public labelController: LabelController;
+  declare public inputController: InputController;
+  declare public clock: ClockController;
 
   declare private updateBackground: () => void;
 
   private data = solarSystemData;
   private CelestianBodyArray: CelestialBody[] = [];
 
+  public static getInstance(
+    canvas: HTMLCanvasElement,
+    labels: HTMLDivElement,
+  ): Engine {
+    if (!Engine.instance) {
+      Engine.instance = new Engine(
+        canvas as HTMLCanvasElement,
+        labels as HTMLDivElement,
+      );
+    }
+    return Engine.instance;
+  }
+
   private animate = () => {
-    num++;
-    this.Clock.update();
-    stats.begin();
-    const t0 = performance.now();
+    this.clock.update();
+
     this.updateScene();
-    const t1 = performance.now();
+
     this.composer.render();
-    const t2 = performance.now();
 
     Telemetry.update({
-      currentTime: this.Clock.getTime(),
-      distanceFromSun: this.CameraController.camera.position.distanceTo(
+      currentTime: this.clock.getTime(),
+      distanceFromSun: this.cameraController.camera.position.distanceTo(
         this.SolarSystem.group.position,
       ),
+      focusedBody: AppState.get("focusedBody"),
+      timeScale: AppState.get("timeScale"),
+      cameraMode: AppState.get("cameraMode"),
     });
-    const t3 = performance.now();
 
-    // num % 100 == 0 &&
-    //   console.table([
-    //     {
-    //       name: "updateScene",
-    //       time: t1 - t0,
-    //     },
-    //     {
-    //       name: "composer.render",
-    //       time: t2 - t1,
-    //     },
-    //     {
-    //       name: "updateBackground",
-    //       time: t3 - t2,
-    //     },
-    //   ]);
-
-    stats.end();
+    if (AppState.isDirty("cameraMode"))
+      this.cameraController.setMode(AppState.get("cameraMode"));
     requestAnimationFrame(this.animate);
   };
 
   constructor(canvas: HTMLCanvasElement, labels: HTMLDivElement) {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
-    this.Clock = ClockController.getInstance();
+    this.clock = ClockController.getInstance();
     this.initRenderer();
 
     this.buildSolarSystem();
     this.appendTrails();
 
-    this.CameraController = CameraController.getInstance(
-      canvas,
+    this.inputController = InputController.getInstance(canvas);
+
+    this.cameraController = CameraController.getInstance(
+      this.inputController,
       this.SolarSystem,
     );
     FOCAL_LENGTH =
       window.innerHeight /
       (2 *
         Math.tan(
-          THREE.MathUtils.degToRad(this.CameraController.camera.fov) / 2,
+          THREE.MathUtils.degToRad(this.cameraController.camera.fov) / 2,
         ));
-    this.LabelController = LabelController.getInstance(
+    this.labelController = LabelController.getInstance(
       labels,
       this.SolarSystem,
     );
 
     this.initComposer();
     this.initLight();
-    this.initWindowEventListeners();
+    this.handleStateActions();
+    this.initEventListeners();
     this.initCanvasClickListeners();
     this.updateBackground = this.initBackground();
 
@@ -130,7 +127,7 @@ export class Engine {
 
     this.cacheWorldPositions();
 
-    this.CameraController.update(this.Clock.getDelta());
+    this.cameraController.update(this.clock.getDelta());
 
     this.updateCelestialBodyLOD();
 
@@ -138,12 +135,12 @@ export class Engine {
 
     this.runPostUpdateMethods();
 
-    this.LabelController.update(this.CameraController.camera);
+    this.labelController.update(this.cameraController.camera);
     this.updateBackground();
   }
 
   runPostUpdateMethods() {
-    const camera = this.CameraController.camera;
+    const camera = this.cameraController.camera;
     const showMoons = AppState.get("showMoons");
     const showTrails = AppState.get("showTrails");
     const showOrbits = AppState.get("showOrbits");
@@ -175,12 +172,12 @@ export class Engine {
 
     SolarSystem.group.position.y +=
       SUN_GALACTIC_SPEED *
-      this.Clock.getDeltaDays() *
+      this.clock.getDeltaDays() *
       AppState.get("distanceScale");
   }
 
   ensureMinimumSunScale() {
-    const camera = this.CameraController.camera;
+    const camera = this.cameraController.camera;
     const SolarSystem = this.SolarSystem;
     const distanceScale = AppState.get("distanceScale");
 
@@ -194,7 +191,7 @@ export class Engine {
   }
 
   updateCelestialBodyMotion() {
-    const time = this.Clock.getDays();
+    const time = this.clock.getDays();
 
     for (let i = 1; i < this.CelestianBodyArray.length; i++) {
       this.CelestianBodyArray[i].updatePosition(time);
@@ -203,7 +200,7 @@ export class Engine {
 
   updateCelestialBodyLOD() {
     const distanceScale = AppState.get("distanceScale");
-    const camera = this.CameraController.camera;
+    const camera = this.cameraController.camera;
     for (let body of this.CelestianBodyArray) {
       body.updateLOD(camera, distanceScale, FOCAL_LENGTH);
     }
@@ -259,7 +256,7 @@ export class Engine {
 
   initComposer() {
     const composer = new EffectComposer(this.renderer);
-    const renderPass = new RenderPass(this.scene, this.CameraController.camera);
+    const renderPass = new RenderPass(this.scene, this.cameraController.camera);
     composer.addPass(renderPass);
 
     const bloomPass = new UnrealBloomPass(
@@ -298,9 +295,9 @@ export class Engine {
 
   resetSolarPosition() {
     this.SolarSystem.group.position.y -= maxSolarDriftDistance;
-    this.CameraController.camera.position.y -= maxSolarDriftDistance;
+    this.cameraController.camera.position.y -= maxSolarDriftDistance;
     this.SolarSystem.group.updateMatrixWorld(true);
-    this.CameraController.camera.updateMatrixWorld(true);
+    this.cameraController.camera.updateMatrixWorld(true);
     recursiveTransform(this.SolarSystem, (body) => {
       if (!body.trail) return;
       const points = body.trail.pointsHigh;
@@ -367,45 +364,77 @@ export class Engine {
     this.scene.add(stars);
 
     return () => {
-      stars.position.copy(this.CameraController.camera.position);
+      stars.position.copy(this.cameraController.camera.position);
     };
   }
 
-  initWindowEventListeners() {
-    window.addEventListener("keydown", (e) => {
-      if (Number(e.key) > 0 && Number(e.key) <= 9) {
-        const index = parseInt(e.key);
-        this.SolarSystem.children.forEach((child, i) => {
-          if (i + 1 === index) {
-            AppState.set("focusedBody", child);
-          }
-        });
-      }
-      if (e.key === "0") {
-        AppState.set("focusedBody", this.SolarSystem);
-      }
-      if (e.code === "KeyR") {
-        this.CameraController.setMode("overview");
-      }
-      if (e.code === "KeyT") {
-        this.CameraController.setMode("orbit");
-      }
-      if (e.code === "KeyY") {
-        this.CameraController.setMode("flight");
-      }
-    });
+  private handleStateActions() {
+    const input = this.inputController;
 
+    const toggle = <
+      K extends
+        | "showOrbits"
+        | "showTrails"
+        | "showLabels"
+        | "showMoons"
+        | "showIndicators",
+    >(
+      key: K,
+    ) => {
+      input.subscribe(key, (_, state) => {
+        if (!state.pressed) return;
+        AppState.set(key, !AppState.get(key));
+      });
+    };
+
+    toggle("showOrbits");
+    toggle("showTrails");
+    toggle("showLabels");
+    toggle("showMoons");
+    toggle("showIndicators");
+
+    const focus: Record<string, number> = {
+      focusSun: 0,
+      focusMercury: 1,
+      focusVenus: 2,
+      focusEarth: 3,
+      focusMars: 4,
+      focusJupiter: 5,
+      focusSaturn: 6,
+      focusUranus: 7,
+      focusNeptune: 8,
+      focusPluto: 9,
+    };
+
+    for (const [action, index] of Object.entries(focus)) {
+      input.subscribe(action as any, (_, state) => {
+        if (!state.pressed) return;
+
+        if (index === 0) {
+          AppState.set("focusedBody", this.SolarSystem);
+          return;
+        }
+
+        const body = this.SolarSystem.children[index - 1];
+        if (body) {
+          AppState.set("focusedBody", body);
+        }
+      });
+    }
+  }
+
+  initEventListeners() {
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         AppState.set("paused", true);
       } else {
-        this.Clock.update();
+        this.clock.update();
         AppState.set("paused", false);
       }
     });
 
     window.addEventListener("resize", () => {
-      this.CameraController.camera.aspect =
+      this.cameraController.camera.aspect =
         window.innerWidth / window.innerHeight;
       this.composer.setSize(window.innerWidth, window.innerHeight);
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -418,12 +447,12 @@ export class Engine {
           );
         }
       });
-      this.CameraController.camera.updateProjectionMatrix();
+      this.cameraController.camera.updateProjectionMatrix();
     });
   }
 
   initCanvasClickListeners() {
-    const camera = this.CameraController.camera;
+    const camera = this.cameraController.camera;
     const meshes = this.CelestianBodyArray.map((body) => body.mesh);
 
     const raycaster = new THREE.Raycaster();

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { InputState } from "./inputController";
+import type { InputState } from "../Input/inputController";
 import type { MovementController } from ".";
 
 export class FlightController implements MovementController {
@@ -36,7 +36,7 @@ export class FlightController implements MovementController {
     const movement = input.movement;
 
     // Rotation
-    if (mouse.primaryMouse) {
+    if (mouse.isCaptured) {
       this.yaw -= mouse.mouseDeltaX * this.rotationSensitivity;
       this.pitch -= mouse.mouseDeltaY * this.rotationSensitivity;
     }
