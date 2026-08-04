@@ -11,6 +11,7 @@ export const cameraController = engine.cameraController;
 export const labelController = engine.labelController;
 export const inputController = engine.inputController;
 export const solarSystem = engine.SolarSystem;
+export const celestialBodies = engine.CelestialBodyArray;
 
 const app = mount(App, {
   target: document.getElementById("ui")!,

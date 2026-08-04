@@ -20,7 +20,7 @@
     class="pointer-events-none absolute right-[14px] bottom-[14px] h-7 w-7 border-r-2 border-b-2 border-(--primary-strong)"
   ></div>
 
-  <div class="body p-12 max-h-[90vh] w-fit h-fit">
+  <div class="body p-12 max-h-[90vh] w-fit h-fit scrollbar-gutter-stable">
     <slot />
   </div>
 </div>

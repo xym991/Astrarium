@@ -33,10 +33,13 @@ export default class Clock {
   getDays() {
     return (this.time - this.J2K) / 86400000;
   }
-  getDelta() {
-    return this.delta;
+  getDelta(multiplier: number = 1) {
+    return this.delta * multiplier;
   }
-  getDeltaDays() {
-    return (this.delta * AppState.get("timeScale")) / 86400000;
+  getDeltaSeconds(multiplier: number = 1) {
+    return (this.delta * multiplier) / 1000;
+  }
+  getDeltaDays(multiplier: number = 1) {
+    return (this.delta * multiplier) / 86400000;
   }
 }

@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import type { CelestialBody } from "../CelestialBody";
-import type { InputState } from "../Input/inputController";
 import AppState from "../../state";
 import { getBodyWorldPosition } from "./shared";
-import type { MovementController } from "./index";
-export class OrbitController implements MovementController {
+import type Clock from "../clock";
+import type InputController from "../Input/inputController";
+import MovementController from "./movementController";
+export class OrbitController extends MovementController {
   private yaw = 0;
   private pitch = THREE.MathUtils.degToRad(30);
   private offset = new THREE.Vector3();
@@ -14,21 +15,33 @@ export class OrbitController implements MovementController {
   private maxAltitude = 10;
   private lastFocusedBody?: CelestialBody;
 
-  enter(camera: THREE.PerspectiveCamera) {
-    return this;
+  constructor(
+    camera: THREE.PerspectiveCamera,
+    inputController: InputController,
+    body: CelestialBody,
+  ) {
+    super(camera, inputController, body);
+    AppState.set("focusedBody", body);
+    this.onTargetChanged(body, camera);
+    inputController.capturePointer();
   }
 
-  update(delta: number, camera: THREE.PerspectiveCamera, input: InputState) {
+  update(
+    camera: THREE.PerspectiveCamera,
+    clock: Clock,
+    inputController: InputController,
+  ) {
     const focusedBody = AppState.get("focusedBody");
 
     if (!focusedBody) return;
     if (focusedBody !== this.lastFocusedBody) {
-      this.onTargetChanged(focusedBody);
+      this.onTargetChanged(focusedBody, camera);
       this.lastFocusedBody = focusedBody;
     }
+    const delta = clock.getDelta();
+    const mouse = inputController.getMouse();
+    const movement = inputController.getMovement();
 
-    const mouse = input.mouse;
-    const movement = input.movement;
     // Rotation
     if (mouse.isCaptured || mouse.mode === "touch") {
       this.yaw -= mouse.mouseDeltaX * this.rotationSensitivity;
@@ -91,13 +104,21 @@ export class OrbitController implements MovementController {
     const center = getBodyWorldPosition(focusedBody);
     camera.position.copy(center.clone().add(this.offset));
   }
-  private onTargetChanged(body: CelestialBody) {
+  private onTargetChanged(
+    body: CelestialBody,
+    camera: THREE.PerspectiveCamera,
+  ) {
     const radius = body.radius * AppState.get("distanceScale");
+
     this.altitude = radius * 0.5;
-    this.minAltitude = radius * 0.2;
+    this.minAltitude = Math.max(radius * 0.2, 0.0001);
     this.maxAltitude = radius * 10;
     this.offset.set(-(radius + this.altitude), 0, 0);
+    camera.near = this.minAltitude * 0.5;
+    camera.updateProjectionMatrix();
   }
 
-  exit() {}
+  exit(inputController: InputController) {
+    inputController.releasePointer();
+  }
 }

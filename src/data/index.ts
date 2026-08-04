@@ -301,30 +301,6 @@ export const solarSystemData = new CelestialBodyData({
     })
       .addChild(
         new CelestialBodyData({
-          name: "Amalthea",
-
-          ascendingNode: 0,
-          argumentOfPeriapsis: 0,
-          meanAnomalyAtEpoch: 0,
-
-          type: "moon",
-          radius: 83.5,
-          shapeScale: [1.08, 0.94, 0.92],
-
-          semiMajorAxis: 181366,
-          eccentricity: 0.0032,
-
-          orbitalTilt: 0.4,
-          axisTilt: 0,
-
-          orbitalPeriod: 0.498179,
-          rotationPeriod: 0.498179,
-
-          color: "#D0C39A",
-        }),
-      )
-      .addChild(
-        new CelestialBodyData({
           name: "Himalia",
 
           ascendingNode: 0,
@@ -491,54 +467,54 @@ export const solarSystemData = new CelestialBodyData({
           color: "#C7C6BD",
         }),
       )
-      .addChild(
-        new CelestialBodyData({
-          name: "Epimetheus",
+      // .addChild(
+      //   new CelestialBodyData({
+      //     name: "Epimetheus",
 
-          ascendingNode: 0,
-          argumentOfPeriapsis: 0,
-          meanAnomalyAtEpoch: 0,
+      //     ascendingNode: 0,
+      //     argumentOfPeriapsis: 0,
+      //     meanAnomalyAtEpoch: 0,
 
-          type: "moon",
-          radius: 58.1,
-          shapeScale: [1.05, 0.95, 0.9],
+      //     type: "moon",
+      //     radius: 58.1,
+      //     shapeScale: [1.05, 0.95, 0.9],
 
-          semiMajorAxis: 151422,
-          eccentricity: 0.0098,
+      //     semiMajorAxis: 151422,
+      //     eccentricity: 0.0098,
 
-          orbitalTilt: 0.34,
-          axisTilt: 0,
+      //     orbitalTilt: 0.34,
+      //     axisTilt: 0,
 
-          orbitalPeriod: 0.6942,
-          rotationPeriod: 0.6942,
+      //     orbitalPeriod: 0.6942,
+      //     rotationPeriod: 0.6942,
 
-          color: "#B8B3AD",
-        }),
-      )
-      .addChild(
-        new CelestialBodyData({
-          name: "Pandora",
+      //     color: "#B8B3AD",
+      //   }),
+      // )
+      // .addChild(
+      //   new CelestialBodyData({
+      //     name: "Pandora",
 
-          ascendingNode: 0,
-          argumentOfPeriapsis: 0,
-          meanAnomalyAtEpoch: 0,
+      //     ascendingNode: 0,
+      //     argumentOfPeriapsis: 0,
+      //     meanAnomalyAtEpoch: 0,
 
-          type: "moon",
-          radius: 55.0,
-          shapeScale: [1.04, 0.96, 0.92],
+      //     type: "moon",
+      //     radius: 55.0,
+      //     shapeScale: [1.04, 0.96, 0.92],
 
-          semiMajorAxis: 141720,
-          eccentricity: 0.0042,
+      //     semiMajorAxis: 141720,
+      //     eccentricity: 0.0042,
 
-          orbitalTilt: 0.0,
-          axisTilt: 0,
+      //     orbitalTilt: 0.0,
+      //     axisTilt: 0,
 
-          orbitalPeriod: 0.6285,
-          rotationPeriod: 0.6285,
+      //     orbitalPeriod: 0.6285,
+      //     rotationPeriod: 0.6285,
 
-          color: "#C6BFB5",
-        }),
-      )
+      //     color: "#C6BFB5",
+      //   }),
+      // )
       .addChild(
         new CelestialBodyData({
           name: "Mimas",

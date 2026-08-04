@@ -1,6 +1,6 @@
 <script lang="ts">
   import Clock from "./Clock.svelte";
-  import HUD from "./HUD.svelte";
+  import Hologram from "./Hologram.svelte";
   import Settings from "./Settings/Settings.svelte";
   import Movement from "./Movement.svelte";
   import BodyInfo from "./BodyInfo.svelte";
@@ -11,6 +11,6 @@
 ></div>
 <Clock />
 <Settings />
-<HUD />
+<Hologram />
 <Movement />
 <BodyInfo />

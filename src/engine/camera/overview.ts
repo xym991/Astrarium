@@ -2,10 +2,12 @@ import * as THREE from "three";
 import type { CelestialBody } from "../CelestialBody";
 import type { InputState } from "../Input/inputController";
 import AppState from "../../state";
-import { getBodyWorldPosition, getDefaultViewingDistance } from "./shared";
-import type { MovementController } from ".";
 
-export class OverviewController implements MovementController {
+import type InputController from "../Input/inputController";
+import type Clock from "../clock";
+import MovementController from "./movementController";
+
+export class OverviewController extends MovementController {
   private offset = new THREE.Vector3();
   private orientation = new THREE.Quaternion();
 
@@ -13,25 +15,37 @@ export class OverviewController implements MovementController {
 
   private readonly rotationSensitivity = 0.01;
   private minDistance = 2;
-  private maxDistance = 1000000;
+  private maxDistance = 20_000_000_000 * AppState.get("distanceScale");
 
   private lastFocusedBody?: CelestialBody;
 
-  enter(camera: THREE.PerspectiveCamera, focusedBody?: CelestialBody) {
+  constructor(
+    camera: THREE.PerspectiveCamera,
+    inputController: InputController,
+    body: CelestialBody,
+  ) {
+    super(camera, inputController, body);
+    AppState.set("focusedBody", body);
+    this.onTargetChanged(body, camera);
+    inputController.releasePointer();
     return this;
   }
 
-  update(delta: number, camera: THREE.PerspectiveCamera, input: InputState) {
+  update(
+    camera: THREE.PerspectiveCamera,
+    clock: Clock,
+    inputController: InputController,
+  ) {
     const focusedBody = AppState.get("focusedBody");
 
     if (!focusedBody) return;
 
     if (focusedBody !== this.lastFocusedBody) {
-      this.onTargetChanged(focusedBody);
+      this.onTargetChanged(focusedBody, camera);
       this.lastFocusedBody = focusedBody;
     }
 
-    const mouse = input.mouse;
+    const mouse = inputController.getMouse();
 
     if (mouse.primaryMouse) {
       const yawQuat = new THREE.Quaternion().setFromAxisAngle(
@@ -51,7 +65,10 @@ export class OverviewController implements MovementController {
     }
 
     if (mouse.scrollDelta !== 0) {
-      this.distance *= 1 + mouse.scrollDelta * 0.001;
+      this.distance = Math.max(
+        this.distance * (1 + mouse.scrollDelta * 0.001),
+        this.minDistance,
+      );
     }
 
     this.distance = THREE.MathUtils.clamp(
@@ -62,20 +79,24 @@ export class OverviewController implements MovementController {
 
     this.offset.set(0, 0, this.distance).applyQuaternion(this.orientation);
 
-    const target = getBodyWorldPosition(focusedBody);
+    const target = focusedBody.worldPosition;
 
     camera.position.copy(target).add(this.offset);
+
     camera.quaternion.copy(this.orientation);
   }
 
-  private onTargetChanged(body: CelestialBody) {
+  private onTargetChanged(
+    body: CelestialBody,
+    camera: THREE.PerspectiveCamera,
+  ) {
     this.orientation.identity();
 
-    this.minDistance = Math.max(
-      body.radius * AppState.get("distanceScale") * 1.2,
-      0.01,
-    );
     const radius = body.radius * AppState.get("distanceScale");
+
+    this.minDistance = Math.max(radius * 1.5, 0.0005);
+    camera.near = radius / 3;
+    camera.updateProjectionMatrix();
 
     this.distance = radius * 5;
     if (body.name == "Sun") {

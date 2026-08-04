@@ -174,8 +174,8 @@ export default {
   venus: (body: CelestialBody) => {
     let atmosphere: THREE.Mesh | null = null;
 
-    createAtmosphere(body, "/textures/venus_atmosphere.jpg", 1.01, (mesh) => {
-      (mesh.material as THREE.MeshStandardMaterial).opacity = 1.2;
+    createAtmosphere(body, "/textures/venus_atmosphere.jpg", 1.005, (mesh) => {
+      (mesh.material as THREE.MeshStandardMaterial).opacity = 1.3;
       atmosphere = mesh;
       atmosphere.userData = body;
     });

@@ -14,9 +14,11 @@ import addTextures from "./utils/addTextures";
 import ClockController from "./clock";
 import Telemetry from "../state/telemetry.svelte";
 import InputController from "./Input/inputController";
-
-const maxSolarDriftDistance = 50000;
-const SUN_GALACTIC_SPEED = 19_008_000; // km/day
+import {
+  MAX_SOLAR_DRIFT_DISTANCE,
+  SIMULATION_RADIUS,
+  SOLAR_GALACTIC_SPEED,
+} from "../data/constants";
 
 let FOCAL_LENGTH = 0;
 
@@ -27,8 +29,8 @@ export default class Engine {
   declare private scene: THREE.Scene;
   declare private renderer: THREE.WebGLRenderer;
   declare private composer: EffectComposer;
-  declare public readonly SolarSystem: CelestialBody;
-
+  declare public SolarSystem: CelestialBody;
+  public CelestialBodyArray: CelestialBody[] = [];
   declare public cameraController: CameraController;
   declare public labelController: LabelController;
   declare public inputController: InputController;
@@ -37,7 +39,6 @@ export default class Engine {
   declare private updateBackground: () => void;
 
   private data = solarSystemData;
-  private CelestianBodyArray: CelestialBody[] = [];
 
   public static getInstance(
     canvas: HTMLCanvasElement,
@@ -88,8 +89,8 @@ export default class Engine {
     this.inputController = InputController.getInstance(canvas);
 
     this.cameraController = CameraController.getInstance(
-      this.inputController,
       this.SolarSystem,
+      this.inputController,
     );
     FOCAL_LENGTH =
       window.innerHeight /
@@ -116,7 +117,7 @@ export default class Engine {
 
   updateScene() {
     const SolarSystem = this.SolarSystem;
-    if (SolarSystem.group.position.y > maxSolarDriftDistance)
+    if (SolarSystem.group.position.y > MAX_SOLAR_DRIFT_DISTANCE)
       this.resetSolarPosition();
 
     this.handleDistanceScaleChanged();
@@ -129,7 +130,7 @@ export default class Engine {
 
     this.cacheWorldPositions();
 
-    this.cameraController.update(this.clock.getDelta());
+    this.cameraController.update(this.clock);
 
     this.updateCelestialBodyLOD();
 
@@ -147,7 +148,7 @@ export default class Engine {
     const showTrails = AppState.get("showTrails");
     const showOrbits = AppState.get("showOrbits");
 
-    for (const body of this.CelestianBodyArray) {
+    for (const body of this.CelestialBodyArray) {
       body.postUpdate(camera, {
         showMoons,
         showTrails,
@@ -157,14 +158,14 @@ export default class Engine {
   }
 
   updateTrails() {
-    for (let body of this.CelestianBodyArray) {
+    for (let body of this.CelestialBodyArray) {
       body.updateTrail();
     }
   }
 
   cacheWorldPositions() {
     this.scene.updateMatrixWorld(false);
-    for (const body of this.CelestianBodyArray) {
+    for (const body of this.CelestialBodyArray) {
       body.worldPosition.setFromMatrixPosition(body.group.matrixWorld);
     }
   }
@@ -173,8 +174,8 @@ export default class Engine {
     const SolarSystem = this.SolarSystem;
 
     SolarSystem.group.position.y +=
-      SUN_GALACTIC_SPEED *
-      this.clock.getDeltaDays() *
+      SOLAR_GALACTIC_SPEED *
+      this.clock.getDeltaDays(AppState.get("timeScale")) *
       AppState.get("distanceScale");
   }
 
@@ -195,15 +196,15 @@ export default class Engine {
   updateCelestialBodyMotion() {
     const time = this.clock.getDays();
 
-    for (let i = 1; i < this.CelestianBodyArray.length; i++) {
-      this.CelestianBodyArray[i].updatePosition(time);
+    for (let i = 1; i < this.CelestialBodyArray.length; i++) {
+      this.CelestialBodyArray[i].updatePosition(time);
     }
   }
 
   updateCelestialBodyLOD() {
     const distanceScale = AppState.get("distanceScale");
     const camera = this.cameraController.camera;
-    for (let body of this.CelestianBodyArray) {
+    for (let body of this.CelestialBodyArray) {
       body.updateLOD(camera, distanceScale, FOCAL_LENGTH);
     }
   }
@@ -211,7 +212,7 @@ export default class Engine {
   handleDistanceScaleChanged() {
     if (!AppState.isDirty("distanceScale")) return;
     const distanceScale = AppState.get("distanceScale");
-    for (let body of this.CelestianBodyArray) {
+    for (let body of this.CelestialBodyArray) {
       body.setBodyScale(distanceScale);
       body.setOrbitScale(distanceScale);
       body.resetTrail();
@@ -220,13 +221,13 @@ export default class Engine {
 
   handleTimeScaleChanged() {
     if (!AppState.isDirty("timeScale")) return;
-    for (let body of this.CelestianBodyArray) {
+    for (let body of this.CelestialBodyArray) {
       body.resetTrail();
     }
   }
 
   appendTrails() {
-    for (const body of this.CelestianBodyArray) {
+    for (const body of this.CelestialBodyArray) {
       if (body.trail?.line) {
         this.scene.add(body.trail.line);
       }
@@ -234,11 +235,13 @@ export default class Engine {
   }
 
   initLight() {
-    const light = new THREE.PointLight("#FFFFFF", 5, 0);
-    light.decay = 0.05;
-    light.castShadow = true;
+    const radius = SIMULATION_RADIUS * AppState.get("distanceScale");
+    const light = new THREE.PointLight("#FFFFFF", 7, radius);
+    light.decay = 0.1;
     light.position.set(0, 0, 0);
     this.SolarSystem.group.add(light);
+    const light2 = new THREE.PointLight("#FFFFFF", 0.3, radius);
+    this.SolarSystem.group.add(light2);
   }
 
   initRenderer() {
@@ -268,7 +271,7 @@ export default class Engine {
         window.innerHeight,
       ),
       0.25, // strength
-      1.2, // radius
+      1.25, // radius
       10, // threshold
     );
 
@@ -283,7 +286,7 @@ export default class Engine {
     parent: CelestialBody | null = null,
   ) {
     const body = new CelestialBody(data, parent);
-    this.CelestianBodyArray.push(body);
+    this.CelestialBodyArray.push(body);
     addTextures(body, this.renderer);
     for (const childData of data.children) {
       this.buildSolarSystem(childData, body);
@@ -296,8 +299,8 @@ export default class Engine {
   }
 
   resetSolarPosition() {
-    this.SolarSystem.group.position.y -= maxSolarDriftDistance;
-    this.cameraController.camera.position.y -= maxSolarDriftDistance;
+    this.SolarSystem.group.position.y -= MAX_SOLAR_DRIFT_DISTANCE;
+    this.cameraController.camera.position.y -= MAX_SOLAR_DRIFT_DISTANCE;
     this.SolarSystem.group.updateMatrixWorld(true);
     this.cameraController.camera.updateMatrixWorld(true);
     recursiveTransform(this.SolarSystem, (body) => {
@@ -305,7 +308,7 @@ export default class Engine {
       const points = body.trail.pointsHigh;
 
       for (let i = 0; i < points.length; i += 3) {
-        points[i + 1] -= maxSolarDriftDistance;
+        points[i + 1] -= MAX_SOLAR_DRIFT_DISTANCE;
       }
     });
   }
@@ -318,17 +321,18 @@ export default class Engine {
       const colors: number[] = [];
 
       const palette = [
-        [0.7, 0.8, 1.0], // blue-white
+        [0.5, 0.7, 1.0], // blue-white
+        [0.5, 0.5, 1.0], // blue
         [1.0, 1.0, 1.0], // white
-        [1.0, 0.95, 0.8], // yellow-white
-        [1.0, 0.8, 0.6], // orange
+        [1.0, 1.0, 0.75], // yellow-white
+        [1.0, 0.7, 0.5], // orange
       ];
 
       for (let i = 0; i < count; i++) {
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(Math.random() * 2 - 1);
 
-        const radius = 10000000;
+        const radius = SIMULATION_RADIUS * AppState.get("distanceScale");
 
         positions.push(
           radius * Math.sin(phi) * Math.cos(theta),
@@ -336,7 +340,7 @@ export default class Engine {
           radius * Math.sin(phi) * Math.sin(theta),
         );
 
-        const brightness = Math.pow(Math.random(), 4);
+        const brightness = Math.pow(Math.random() + 0.5, 5);
         const [r, g, b] = palette[Math.floor(Math.random() * palette.length)];
         colors.push(r * brightness, g * brightness, b * brightness);
       }
@@ -356,17 +360,24 @@ export default class Engine {
     }
 
     const material1 = new THREE.PointsMaterial({
+      size: 1,
+      sizeAttenuation: false,
+      vertexColors: true,
+    });
+    const material2 = new THREE.PointsMaterial({
       size: 2,
       sizeAttenuation: false,
       vertexColors: true,
     });
 
-    const stars = new THREE.Points(createStars(20000), material1);
-
+    const stars = new THREE.Points(createStars(10000), material1);
+    const stars2 = new THREE.Points(createStars(500), material2);
     this.scene.add(stars);
+    this.scene.add(stars2);
 
     return () => {
       stars.position.copy(this.cameraController.camera.position);
+      stars2.position.copy(this.cameraController.camera.position);
     };
   }
 
@@ -455,7 +466,7 @@ export default class Engine {
 
   initCanvasClickListeners() {
     const camera = this.cameraController.camera;
-    const meshes = this.CelestianBodyArray.map((body) => body.mesh);
+    const meshes = this.CelestialBodyArray.map((body) => body.mesh);
 
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();

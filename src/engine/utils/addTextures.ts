@@ -17,9 +17,8 @@ export default function addTextures(
       texture.minFilter = THREE.LinearMipmapLinearFilter;
       texture.magFilter = THREE.LinearFilter;
       texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
+      material.color.set(0xffffff);
       if (body.type === "star") {
-        material.color.set("#ffffff");
         material.emissiveMap = texture;
       } else {
         material.map = texture;

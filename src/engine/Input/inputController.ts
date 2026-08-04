@@ -42,6 +42,7 @@ export const defaultBindings = {
   changeCamera: ["KeyC"],
   changeTime: ["KeyX"],
   showSettings: ["Tab"],
+  showSearch: ["KeyZ"],
 
   releasePointerLock: ["AltLeft"],
 

@@ -3,15 +3,16 @@
   import TimeScale from "./TimeScale.svelte";
   import Toggles from "./Toggles.svelte";
   import {
-    Eye,
-    MousePointerClick,
     ScanEye,
     Settings2 as SettingsIcon,
     CircleGauge,
     Expand,
+    Search,
+    Shrink,
   } from "lucide-svelte";
   import Button from "../shared/Button.svelte";
   import CameraMode from "./CameraMode.svelte";
+  import SearchPanel from "./Search.svelte";
   import Telemetry from "../../state/telemetry.svelte";
   import { getTimeScaleLabel } from "../../data";
   import InputController, {
@@ -19,10 +20,10 @@
   } from "../../engine/Input/inputController";
   import { inputController } from "../../main";
 
-  type Panel = "camera" | "time" | "settings";
+  type Panel = "camera" | "time" | "settings" | "search";
   type PanelAction = Extract<
     InputAction,
-    "changeCamera" | "changeTime" | "showSettings"
+    "changeCamera" | "changeTime" | "showSettings" | "showSearch"
   >;
 
   let openPanel = $state<Panel | null>(null);
@@ -46,6 +47,14 @@
     if (event.target === event.currentTarget) openPanel = null;
   }
 
+  async function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else {
+      await document.documentElement.requestFullscreen();
+    }
+  }
+
   $effect(() => {
     const mouseCaptured = Telemetry.get("mouseState").isCaptured;
 
@@ -66,15 +75,20 @@
     const cameraSubscription = handleAction("changeCamera", "camera");
     const timeSubscription = handleAction("changeTime", "time");
     const settingsSubscription = handleAction("showSettings", "settings");
+    const searchSubscription = handleAction("showSearch", "search");
     return () => {
       cameraSubscription();
       timeSubscription();
       settingsSubscription();
+      searchSubscription();
     };
   });
+
+  let fullscreen = $state(document.fullscreenElement !== null);
 </script>
 
 <svelte:window onkeydown={closeOnEscape} />
+<svelte:document onfullscreenchange={() => (fullscreen = !fullscreen)} />
 
 <div
   class="fixed right-6 top-6 z-[100001] flex gap-3 pointer-events-auto max-w-[50vw] flex-wrap items-end justify-end"
@@ -89,14 +103,17 @@
     <span class="relative top-px"> {timeScaleLabel}</span>
   </Button>
 
+  <Button onclick={() => togglePanel("search")} class="gap-2 px-3">
+    <Search size={20} strokeWidth={2} />
+  </Button>
+
   <Button onclick={() => togglePanel("settings")} class="h-10 w-10 p-0">
     <SettingsIcon size={20} strokeWidth={2} />
   </Button>
-  <Button
-    onclick={() => document.body.requestFullscreen()}
-    class="h-10 w-10 p-0"
-  >
-    <Expand size={20} strokeWidth={2} />
+  <Button onclick={() => toggleFullscreen()} class="h-10 w-10 p-0">
+    {#if !fullscreen}<Expand size={20} strokeWidth={2} />{:else}
+      <Shrink size={20} strokeWidth={2} />
+    {/if}
   </Button>
 </div>
 
@@ -112,12 +129,14 @@
   >
     <Frame title="SETTINGS">
       <div
-        class="flex w-full max-h-[calc(90vh-8rem)] min-h-0 flex-col gap-12 overflow-y-auto overscroll-contain"
+        class="flex w-full max-h-[calc(90vh-8rem)] min-h-0 flex-col gap-12 overflow-y-auto overscroll-contain scrollbar-gutter-stable"
       >
         {#if openPanel === "camera"}
           <CameraMode />
         {:else if openPanel === "time"}
           <TimeScale />
+        {:else if openPanel === "search"}
+          <SearchPanel close={() => (openPanel = null)} />
         {:else}
           <Toggles />
         {/if}
