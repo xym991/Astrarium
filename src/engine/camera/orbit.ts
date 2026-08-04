@@ -30,7 +30,7 @@ export class OrbitController implements MovementController {
     const mouse = input.mouse;
     const movement = input.movement;
     // Rotation
-    if (mouse.isCaptured) {
+    if (mouse.isCaptured || mouse.mode === "touch") {
       this.yaw -= mouse.mouseDeltaX * this.rotationSensitivity;
       this.pitch -= mouse.mouseDeltaY * this.rotationSensitivity;
     }

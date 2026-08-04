@@ -13,8 +13,10 @@ export const defaultMouseState = {
   mouseDeltaY: 0,
   scrollDelta: 0,
   isCaptured: false,
+  mode: "mouse" as inputMode,
 };
 
+export type inputMode = "mouse" | "touch";
 export type MouseState = typeof defaultMouseState;
 export type MovementState = typeof defaultMovementState;
 
@@ -24,43 +26,42 @@ export type InputState = {
 };
 
 export const defaultBindings = {
-  moveForward: "KeyW",
-  moveBackward: "KeyS",
-  moveLeft: "KeyA",
-  moveRight: "KeyD",
-  moveUp: "Space",
-  moveDown: "ShiftLeft",
+  moveForward: ["KeyW", "ArrowUp"],
+  moveBackward: ["KeyS", "ArrowDown"],
+  moveLeft: ["KeyA", "ArrowLeft"],
+  moveRight: ["KeyD", "ArrowRight"],
+  moveUp: ["Space", "KeyQ"],
+  moveDown: ["ShiftLeft", "KeyE"],
 
-  showOrbits: "KeyO",
-  showTrails: "KeyT",
-  showLabels: "KeyL",
-  showMoons: "KeyM",
-  showIndicators: "KeyI",
+  showOrbits: ["KeyO"],
+  showTrails: ["KeyT"],
+  showLabels: ["KeyL"],
+  showMoons: ["KeyM"],
+  showIndicators: ["KeyI"],
 
-  changeCamera: "KeyC",
-  changeTime: "KeyX",
-  showSettings: "Tab",
+  changeCamera: ["KeyC"],
+  changeTime: ["KeyX"],
+  showSettings: ["Tab"],
 
-  releasePointerLock: "AltLeft",
+  releasePointerLock: ["AltLeft"],
 
-  focusSun: "Digit0",
-  focusMercury: "Digit1",
-  focusVenus: "Digit2",
-  focusEarth: "Digit3",
-  focusMars: "Digit4",
-  focusJupiter: "Digit5",
-  focusSaturn: "Digit6",
-  focusUranus: "Digit7",
-  focusNeptune: "Digit8",
-  focusPluto: "Digit9",
+  focusSun: ["Digit0"],
+  focusMercury: ["Digit1"],
+  focusVenus: ["Digit2"],
+  focusEarth: ["Digit3"],
+  focusMars: ["Digit4"],
+  focusJupiter: ["Digit5"],
+  focusSaturn: ["Digit6"],
+  focusUranus: ["Digit7"],
+  focusNeptune: ["Digit8"],
+  focusPluto: ["Digit9"],
 } as const;
 
 export type InputAction = keyof typeof defaultBindings;
 
 type BindingState = {
-  binding: string;
+  binding: string[];
   active: boolean;
-  toggled: boolean;
 };
 
 class InputController {
@@ -69,13 +70,25 @@ class InputController {
   private mouseState: typeof defaultMouseState;
   private lastTouchX = 0;
   private lastTouchY = 0;
+
+  private pointerCaptured = false;
+
   private lastPinchDistance = 0;
-  pointerCaptured = false;
+  private touchScrollVelocity = 0;
+  private requiresFreshTouch = false;
+
+  private readonly TOUCH_ROTATION_SCALE = 2.2;
+  private readonly TOUCH_SCROLL_SCALE = 1.8;
+  private readonly TOUCH_SCROLL_DECAY = 0.9;
+  private readonly TOUCH_SCROLL_THRESHOLD = 5;
+
   private keyBindings: Record<InputAction, BindingState> = {} as any;
-  private keyLookup: Record<string, InputAction> = {};
+  private keyLookup: Record<string, InputAction[]> = {};
+  private pressedKeys = new Set<string>();
+  private virtualActions = new Set<InputAction>();
   private subscribers = new Map<
     InputAction,
-    Set<(key: string, state: { active: boolean; toggled: boolean }) => void>
+    Set<(key: string, state: { active: boolean }) => void>
   >();
 
   static instance: InputController;
@@ -97,9 +110,8 @@ class InputController {
 
     for (const action in defaultBindings) {
       this.keyBindings[action as InputAction] = {
-        binding: defaultBindings[action as InputAction],
+        binding: [...defaultBindings[action as InputAction]],
         active: false,
-        toggled: false,
       };
     }
 
@@ -117,7 +129,14 @@ class InputController {
         const parsed = JSON.parse(stored);
         for (const action in parsed) {
           if (action in this.keyBindings) {
-            this.keyBindings[action as InputAction].binding = parsed[action];
+            const binding = parsed[action];
+            this.keyBindings[action as InputAction].binding = Array.isArray(
+              binding,
+            )
+              ? binding.filter((key): key is string => typeof key === "string")
+              : typeof binding === "string"
+                ? [binding]
+                : this.keyBindings[action as InputAction].binding;
           }
         }
       } catch {
@@ -127,7 +146,7 @@ class InputController {
   }
 
   private storeConfig() {
-    const toStore: Record<string, string> = {};
+    const toStore: Record<string, string[]> = {};
     for (const action in this.keyBindings) {
       toStore[action] = this.keyBindings[action as InputAction].binding;
     }
@@ -137,27 +156,28 @@ class InputController {
   private rebuildLookup() {
     this.keyLookup = {};
     for (const action in this.keyBindings) {
-      const binding = this.keyBindings[action as InputAction].binding;
-      this.keyLookup[binding] = action as InputAction;
+      const bindings = this.keyBindings[action as InputAction].binding;
+      for (const binding of bindings) {
+        (this.keyLookup[binding] ??= []).push(action as InputAction);
+      }
     }
   }
 
   public getKey(action: InputAction) {
-    return this.keyBindings[action].binding;
+    return [...this.keyBindings[action].binding];
   }
 
-  public setKey(action: InputAction, keyCode: string) {
-    this.keyBindings[action].binding = keyCode;
+  public setKey(action: InputAction, keyCodes: string | string[]) {
+    this.keyBindings[action].binding = Array.isArray(keyCodes)
+      ? [...keyCodes]
+      : [keyCodes];
     this.rebuildLookup();
     this.storeConfig();
   }
 
   public subscribe(
     action: InputAction,
-    callback: (
-      key: string,
-      state: { active: boolean; toggled: boolean },
-    ) => void,
+    callback: (key: string, state: { active: boolean }) => void,
   ) {
     if (!this.subscribers.has(action)) {
       this.subscribers.set(action, new Set());
@@ -193,6 +213,7 @@ class InputController {
       this.handleKeys(e.code, false);
     });
     this.canvas.addEventListener("mousedown", (e) => {
+      this.mouseState.mode = "mouse";
       this.handleMouseClick(e.button, true);
       this.enforcePointerLock();
     });
@@ -200,23 +221,27 @@ class InputController {
       this.handleMouseClick(e.button, false);
     });
     this.canvas.addEventListener("mousemove", (e) => {
-      this.mouseState.mouseDeltaX = e.movementX;
-      this.mouseState.mouseDeltaY = e.movementY;
+      this.mouseState.mode = "mouse";
+      this.mouseState.mouseDeltaX += e.movementX;
+      this.mouseState.mouseDeltaY += e.movementY;
     });
     this.canvas.addEventListener("wheel", (e) => {
+      this.mouseState.mode = "mouse";
       this.mouseState.scrollDelta = e.deltaY;
     });
     this.canvas.addEventListener(
       "touchstart",
       (e) => {
         e.preventDefault();
+        this.mouseState.mode = "touch";
 
-        if (e.touches.length === 1) {
+        if (e.touches.length === 1 && !this.requiresFreshTouch) {
           const touch = e.touches[0];
           this.lastTouchX = touch.clientX;
           this.lastTouchY = touch.clientY;
           this.mouseState.primaryMouse = true;
         } else if (e.touches.length === 2) {
+          this.touchScrollVelocity = 0;
           this.mouseState.primaryMouse = false;
 
           const [a, b] = e.touches;
@@ -233,24 +258,40 @@ class InputController {
       "touchmove",
       (e) => {
         e.preventDefault();
+        this.mouseState.mode = "touch";
 
         if (e.touches.length === 1) {
           const touch = e.touches[0];
 
-          this.mouseState.mouseDeltaX = touch.clientX - this.lastTouchX;
-          this.mouseState.mouseDeltaY = touch.clientY - this.lastTouchY;
+          const dx =
+            (touch.clientX - this.lastTouchX) * this.TOUCH_ROTATION_SCALE;
+
+          const dy =
+            (touch.clientY - this.lastTouchY) * this.TOUCH_ROTATION_SCALE;
+
+          this.mouseState.mouseDeltaX += dx;
+          this.mouseState.mouseDeltaY += dy;
 
           this.lastTouchX = touch.clientX;
           this.lastTouchY = touch.clientY;
         } else if (e.touches.length === 2) {
+          this.requiresFreshTouch = true;
+          this.mouseState.primaryMouse = false;
           const [a, b] = e.touches;
 
           const distance = Math.hypot(
             b.clientX - a.clientX,
             b.clientY - a.clientY,
           );
+          const delta =
+            (this.lastPinchDistance - distance) * this.TOUCH_SCROLL_SCALE;
 
-          this.mouseState.scrollDelta = this.lastPinchDistance - distance;
+          this.mouseState.scrollDelta += delta;
+
+          if (Math.abs(delta) > this.TOUCH_SCROLL_THRESHOLD) {
+            this.touchScrollVelocity = delta;
+          }
+
           this.lastPinchDistance = distance;
         }
       },
@@ -265,7 +306,9 @@ class InputController {
         if (e.touches.length === 0) {
           this.mouseState.primaryMouse = false;
           this.lastPinchDistance = 0;
-        } else if (e.touches.length === 1) {
+          this.requiresFreshTouch = false;
+        } else if (e.touches.length === 1 && !this.requiresFreshTouch) {
+          this.mouseState.primaryMouse = false;
           const touch = e.touches[0];
           this.lastTouchX = touch.clientX;
           this.lastTouchY = touch.clientY;
@@ -281,24 +324,36 @@ class InputController {
   }
 
   private handleKeys(key: string, val: boolean) {
-    const action = this.keyLookup[key];
-    if (!action) return;
+    const actions = this.keyLookup[key];
+    if (!actions) return;
 
-    const bindingState = this.keyBindings[action];
+    if (val) this.pressedKeys.add(key);
+    else this.pressedKeys.delete(key);
 
-    this.setActive(action, val);
-    if (val) {
-      this.setToggled(action, !bindingState.toggled);
+    for (const action of actions) {
+      this.updateAction(action, val);
     }
+  }
 
-    const subs = this.subscribers.get(action);
-    if (subs) {
-      for (const cb of subs) {
-        cb(bindingState.binding, {
-          active: bindingState.active,
-          toggled: bindingState.toggled,
-        });
-      }
+  public setActionActive(action: InputAction, active: boolean) {
+    if (active) this.virtualActions.add(action);
+    else this.virtualActions.delete(action);
+    this.updateAction(action, false);
+  }
+
+  private updateAction(action: InputAction, toggle: boolean) {
+    const bindingState = this.keyBindings[action];
+    const wasActive = bindingState.active;
+    bindingState.active =
+      this.virtualActions.has(action) ||
+      bindingState.binding.some((key) => this.pressedKeys.has(key));
+
+    if (wasActive === bindingState.active && !toggle) return;
+
+    for (const cb of this.subscribers.get(action) ?? []) {
+      cb(bindingState.binding.join(" / "), {
+        active: bindingState.active,
+      });
     }
   }
 
@@ -366,18 +421,25 @@ class InputController {
   }
 
   public setActive(action: InputAction, active: boolean = true) {
-    this.keyBindings[action].active = active;
-  }
-
-  public setToggled(action: InputAction, toggled?: boolean) {
-    this.keyBindings[action].toggled =
-      toggled ?? !this.keyBindings[action].toggled;
+    this.setActionActive(action, active);
   }
 
   public endFrame() {
     this.mouseState.mouseDeltaX = 0;
     this.mouseState.mouseDeltaY = 0;
-    this.mouseState.scrollDelta = 0;
+
+    if (this.mouseState.mode === "touch") {
+      if (Math.abs(this.touchScrollVelocity) > 0.05) {
+        this.touchScrollVelocity *= this.TOUCH_SCROLL_DECAY;
+
+        this.mouseState.scrollDelta = this.touchScrollVelocity;
+      } else {
+        this.touchScrollVelocity = 0;
+        this.mouseState.scrollDelta = 0;
+      }
+    } else {
+      this.mouseState.scrollDelta = 0;
+    }
   }
 }
 

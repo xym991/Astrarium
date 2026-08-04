@@ -27,7 +27,7 @@ export default class Engine {
   declare private scene: THREE.Scene;
   declare private renderer: THREE.WebGLRenderer;
   declare private composer: EffectComposer;
-  declare private SolarSystem: CelestialBody;
+  declare public readonly SolarSystem: CelestialBody;
 
   declare public cameraController: CameraController;
   declare public labelController: LabelController;

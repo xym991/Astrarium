@@ -47,7 +47,7 @@
   <div class="flex flex-col p-4">
     {#each toggles as item}
       <div
-        class="group cursor-pointer flex flex-row justify-between items-center border-b border-[var(--primary-faint)] py-4 transition-colors duration-200 hover:border-[var(--primary)] max-w-[80vw] w-300"
+        class="group cursor-pointer flex flex-row justify-between items-center border-b border-[var(--primary-faint)] py-4 transition-colors duration-200 hover:border-[var(--primary)] max-w-[70vw] w-300"
       >
         <div class="flex gap-4 items-center">
           <div

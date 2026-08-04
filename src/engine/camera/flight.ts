@@ -36,7 +36,7 @@ export class FlightController implements MovementController {
     const movement = input.movement;
 
     // Rotation
-    if (mouse.isCaptured) {
+    if (mouse.isCaptured || mouse.mode === "touch") {
       this.yaw -= mouse.mouseDeltaX * this.rotationSensitivity;
       this.pitch -= mouse.mouseDeltaY * this.rotationSensitivity;
     }

@@ -9,12 +9,12 @@
   const timeScale = $derived(Telemetry.get("timeScale"));
 </script>
 
-<div class="flex w-full items-center justify-between gap-6 p-4">
-  <span
+<div class="flex w-full items-center justify-between gap-6 p-4 flex-col">
+  <!-- <span
     class="shrink-0 font-[Oxanium,sans-serif] text-md font-semibold tracking-[0.15em] text-[var(--primary-full)] uppercase"
   >
     1 SECOND =
-  </span>
+  </span> -->
 
   <Selector
     options={timeScaleOptions}
@@ -24,12 +24,12 @@
     }}
   />
   <Button
-    class="h-10 px-5!"
+    class="h-10 px-5! w-full"
     onclick={() => {
       Clock.getInstance().reset();
-      AppState.set("timeScale", AppState.get("timeScale"));
+      AppState.set("timeScale", timeScaleOptions[0].value);
     }}
   >
-    Reset Clock
+    Reset Clock Time and Scale
   </Button>
 </div>

@@ -76,7 +76,9 @@
 
 <svelte:window onkeydown={closeOnEscape} />
 
-<div class="fixed right-6 top-6 z-[100001] flex gap-2 pointer-events-auto">
+<div
+  class="fixed right-6 top-6 z-[100001] flex gap-3 pointer-events-auto max-w-[50vw] flex-wrap items-end justify-end"
+>
   <Button class="gap-2 px-3" onclick={() => togglePanel("camera")}>
     <ScanEye size={20} strokeWidth={2} />
     <span class="relative top-px"> {cameraLabel}</span>

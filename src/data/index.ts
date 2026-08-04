@@ -48,11 +48,6 @@ export function getTimeScaleLabel(timeScale: number) {
   );
 }
 
-// export const RANGES: Record<NumericKeys, number[]> = {
-//   timeScale: [1000, 10000000, 1],
-//   distanceScale: [1, 10, 0.00001],
-// };
-
 export type CelestialBodyType =
   | "star"
   | "planet"
@@ -306,6 +301,54 @@ export const solarSystemData = new CelestialBodyData({
     })
       .addChild(
         new CelestialBodyData({
+          name: "Amalthea",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 83.5,
+          shapeScale: [1.08, 0.94, 0.92],
+
+          semiMajorAxis: 181366,
+          eccentricity: 0.0032,
+
+          orbitalTilt: 0.4,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.498179,
+          rotationPeriod: 0.498179,
+
+          color: "#D0C39A",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Himalia",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 85,
+          shapeScale: [1.05, 0.96, 0.9],
+
+          semiMajorAxis: 11480000,
+          eccentricity: 0.158,
+
+          orbitalTilt: 27.5,
+          axisTilt: 0,
+
+          orbitalPeriod: 250.56,
+          rotationPeriod: 250.56,
+
+          color: "#9E9487",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
           name: "Io",
 
           ascendingNode: 0,
@@ -424,6 +467,78 @@ export const solarSystemData = new CelestialBodyData({
 
       color: "#C9AA55",
     })
+      .addChild(
+        new CelestialBodyData({
+          name: "Janus",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 89.5,
+          shapeScale: [1.04, 0.96, 0.92],
+
+          semiMajorAxis: 151472,
+          eccentricity: 0.0068,
+
+          orbitalTilt: 0.14,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.6945,
+          rotationPeriod: 0.6945,
+
+          color: "#C7C6BD",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Epimetheus",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 58.1,
+          shapeScale: [1.05, 0.95, 0.9],
+
+          semiMajorAxis: 151422,
+          eccentricity: 0.0098,
+
+          orbitalTilt: 0.34,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.6942,
+          rotationPeriod: 0.6942,
+
+          color: "#B8B3AD",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Pandora",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 55.0,
+          shapeScale: [1.04, 0.96, 0.92],
+
+          semiMajorAxis: 141720,
+          eccentricity: 0.0042,
+
+          orbitalTilt: 0.0,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.6285,
+          rotationPeriod: 0.6285,
+
+          color: "#C6BFB5",
+        }),
+      )
       .addChild(
         new CelestialBodyData({
           name: "Mimas",
@@ -591,6 +706,54 @@ export const solarSystemData = new CelestialBodyData({
 
           color: "#9A8A76",
         }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Hyperion",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 133.0,
+          shapeScale: [1.08, 0.92, 0.9],
+
+          semiMajorAxis: 1500934,
+          eccentricity: 0.1042,
+
+          orbitalTilt: 0.43,
+          axisTilt: 0,
+
+          orbitalPeriod: 21.2766,
+          rotationPeriod: 21.2766,
+
+          color: "#C7B59E",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Phoebe",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 106.6,
+          shapeScale: [1.03, 0.98, 0.95],
+
+          semiMajorAxis: 12952000,
+          eccentricity: 0.156,
+
+          orbitalTilt: 175.2,
+          axisTilt: 0,
+
+          orbitalPeriod: 550.4,
+          rotationPeriod: 550.4,
+
+          color: "#B1A89A",
+        }),
       ),
   )
   .addChild(
@@ -616,6 +779,102 @@ export const solarSystemData = new CelestialBodyData({
 
       color: "#3DC6DF",
     })
+      .addChild(
+        new CelestialBodyData({
+          name: "Puck",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 81.0,
+          shapeScale: [1.04, 0.96, 0.92],
+
+          semiMajorAxis: 86000,
+          eccentricity: 0.0005,
+
+          orbitalTilt: 0.31,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.7618,
+          rotationPeriod: 0.7618,
+
+          color: "#B3B4B7",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Portia",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 67.6,
+          shapeScale: [1.03, 0.97, 0.95],
+
+          semiMajorAxis: 66097,
+          eccentricity: 0.00005,
+
+          orbitalTilt: 0.03,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.513,
+          rotationPeriod: 0.513,
+
+          color: "#C1C2C4",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Caliban",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 72.0,
+          shapeScale: [1.04, 0.96, 0.92],
+
+          semiMajorAxis: 7231000,
+          eccentricity: 0.158,
+
+          orbitalTilt: 0.0,
+          axisTilt: 0,
+
+          orbitalPeriod: 579.7,
+          rotationPeriod: 579.7,
+
+          color: "#9C9DA0",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Sycorax",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 78.5,
+          shapeScale: [1.04, 0.96, 0.92],
+
+          semiMajorAxis: 12179000,
+          eccentricity: 0.521,
+
+          orbitalTilt: 0.0,
+          axisTilt: 0,
+
+          orbitalPeriod: 1288.0,
+          rotationPeriod: 1288.0,
+
+          color: "#A9A8A3",
+        }),
+      )
       .addChild(
         new CelestialBodyData({
           name: "Miranda",
@@ -762,6 +1021,78 @@ export const solarSystemData = new CelestialBodyData({
     })
       .addChild(
         new CelestialBodyData({
+          name: "Despina",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 75.0,
+          shapeScale: [1.04, 0.96, 0.92],
+
+          semiMajorAxis: 52526,
+          eccentricity: 0.0002,
+
+          orbitalTilt: 0.3,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.334655,
+          rotationPeriod: 0.334655,
+
+          color: "#B9C1C8",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Galatea",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 88.0,
+          shapeScale: [1.04, 0.96, 0.92],
+
+          semiMajorAxis: 61953,
+          eccentricity: 0.0001,
+
+          orbitalTilt: 0.05,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.429,
+          rotationPeriod: 0.429,
+
+          color: "#C0C5CC",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Larissa",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 97.0,
+          shapeScale: [1.04, 0.96, 0.92],
+
+          semiMajorAxis: 73548,
+          eccentricity: 0.0014,
+
+          orbitalTilt: 0.2,
+          axisTilt: 0,
+
+          orbitalPeriod: 0.554,
+          rotationPeriod: 0.554,
+
+          color: "#B8C0C6",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
           name: "Triton",
 
           ascendingNode: 0,
@@ -806,6 +1137,30 @@ export const solarSystemData = new CelestialBodyData({
           rotationPeriod: 360.14,
 
           color: "#7E8798",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Proteus",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 210.0,
+          shapeScale: [1.05, 0.95, 0.92],
+
+          semiMajorAxis: 117647,
+          eccentricity: 0.0005,
+
+          orbitalTilt: 0.0,
+          axisTilt: 0,
+
+          orbitalPeriod: 1.122315,
+          rotationPeriod: 1.122315,
+
+          color: "#B2B6BE",
         }),
       ),
   )
@@ -855,7 +1210,30 @@ export const solarSystemData = new CelestialBodyData({
       axisTilt: 122.53,
 
       color: "#C8A88B",
-    }),
+    }).addChild(
+      new CelestialBodyData({
+        name: "Charon",
+
+        ascendingNode: 0,
+        argumentOfPeriapsis: 0,
+        meanAnomalyAtEpoch: 0,
+
+        type: "moon",
+        radius: 606.0,
+        shapeScale: [1.04, 0.98, 0.96],
+
+        semiMajorAxis: 19571,
+        eccentricity: 0.0,
+
+        orbitalTilt: 0.0,
+        axisTilt: 0,
+
+        orbitalPeriod: 6.38723,
+        rotationPeriod: 6.38723,
+
+        color: "#A9A6A0",
+      }),
+    ),
   )
   .addChild(
     new CelestialBodyData({
@@ -879,7 +1257,30 @@ export const solarSystemData = new CelestialBodyData({
       axisTilt: 78.0,
 
       color: "#D8E6F2",
-    }),
+    }).addChild(
+      new CelestialBodyData({
+        name: "Dysnomia",
+
+        ascendingNode: 0,
+        argumentOfPeriapsis: 0,
+        meanAnomalyAtEpoch: 0,
+
+        type: "moon",
+        radius: 350.0,
+        shapeScale: [1.03, 0.98, 0.95],
+
+        semiMajorAxis: 37300,
+        eccentricity: 0.0,
+
+        orbitalTilt: 0.0,
+        axisTilt: 0,
+
+        orbitalPeriod: 15.774,
+        rotationPeriod: 15.774,
+
+        color: "#B5B9C2",
+      }),
+    ),
   )
   .addChild(
     new CelestialBodyData({
@@ -903,7 +1304,55 @@ export const solarSystemData = new CelestialBodyData({
       axisTilt: 126,
 
       color: "#7FD8E8",
-    }),
+    })
+      .addChild(
+        new CelestialBodyData({
+          name: "Hi'iaka",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 160.0,
+          shapeScale: [1.04, 0.96, 0.94],
+
+          semiMajorAxis: 49880,
+          eccentricity: 0.051,
+
+          orbitalTilt: 0.0,
+          axisTilt: 0,
+
+          orbitalPeriod: 49.12,
+          rotationPeriod: 49.12,
+
+          color: "#D6D2C5",
+        }),
+      )
+      .addChild(
+        new CelestialBodyData({
+          name: "Namaka",
+
+          ascendingNode: 0,
+          argumentOfPeriapsis: 0,
+          meanAnomalyAtEpoch: 0,
+
+          type: "moon",
+          radius: 85.0,
+          shapeScale: [1.03, 0.97, 0.95],
+
+          semiMajorAxis: 25600,
+          eccentricity: 0.0,
+
+          orbitalTilt: 0.0,
+          axisTilt: 0,
+
+          orbitalPeriod: 18.28,
+          rotationPeriod: 18.28,
+
+          color: "#CDBEAA",
+        }),
+      ),
   )
   .addChild(
     new CelestialBodyData({

@@ -181,7 +181,7 @@
   ></div>
 
   <div
-    class="group flex h-10 min-h-10 w-[560px] border border-[var(--primary-strong)] transition-colors hover:border-[var(--primary-full)]"
+    class="group flex h-10 min-h-10 w-140 border border-[var(--primary-strong)] transition-colors hover:border-[var(--primary-full)] cursor-pointer"
   >
     <button
       class="flex h-10 w-10 items-center justify-center border-r border-[var(--primary-strong)] text-[var(--primary-full)] transition-colors group-hover:border-[var(--primary-full)]"

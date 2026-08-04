@@ -3,11 +3,25 @@
 
   interface Props {
     onclick?: () => void;
+    onpointerdown?: (event: PointerEvent) => void;
+    onpointerup?: (event: PointerEvent) => void;
+    onpointercancel?: (event: PointerEvent) => void;
+    onlostpointercapture?: (event: PointerEvent) => void;
+    ariaLabel?: string;
     disabled?: boolean;
     class?: string;
   }
 
-  let { onclick, disabled = false, class: className }: Props = $props();
+  let {
+    onclick,
+    onpointerdown,
+    onpointerup,
+    onpointercancel,
+    onlostpointercapture,
+    ariaLabel,
+    disabled = false,
+    class: className,
+  }: Props = $props();
 </script>
 
 <button
@@ -21,6 +35,11 @@
   )}
   {disabled}
   {onclick}
+  {onpointerdown}
+  {onpointerup}
+  {onpointercancel}
+  {onlostpointercapture}
+  aria-label={ariaLabel}
 >
   <slot />
 </button>
