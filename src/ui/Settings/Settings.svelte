@@ -8,13 +8,22 @@
     ScanEye,
     Settings2 as SettingsIcon,
     CircleGauge,
+    Expand,
   } from "lucide-svelte";
   import Button from "../shared/Button.svelte";
   import CameraMode from "./CameraMode.svelte";
   import Telemetry from "../../state/telemetry.svelte";
   import { getTimeScaleLabel } from "../../data";
+  import InputController, {
+    type InputAction,
+  } from "../../engine/Input/inputController";
+  import { inputController } from "../../main";
 
   type Panel = "camera" | "time" | "settings";
+  type PanelAction = Extract<
+    InputAction,
+    "changeCamera" | "changeTime" | "showSettings"
+  >;
 
   let openPanel = $state<Panel | null>(null);
 
@@ -36,6 +45,33 @@
   function closeOnBackdropClick(event: MouseEvent) {
     if (event.target === event.currentTarget) openPanel = null;
   }
+
+  $effect(() => {
+    const mouseCaptured = Telemetry.get("mouseState").isCaptured;
+
+    if (mouseCaptured) openPanel = null;
+  });
+
+  function handleAction(action: PanelAction, panel: Panel): () => void {
+    return inputController.subscribe(action, (_, state) => {
+      if (!state.active) return;
+
+      document.exitPointerLock();
+
+      openPanel = openPanel === panel ? null : panel;
+    });
+  }
+
+  $effect(() => {
+    const cameraSubscription = handleAction("changeCamera", "camera");
+    const timeSubscription = handleAction("changeTime", "time");
+    const settingsSubscription = handleAction("showSettings", "settings");
+    return () => {
+      cameraSubscription();
+      timeSubscription();
+      settingsSubscription();
+    };
+  });
 </script>
 
 <svelte:window onkeydown={closeOnEscape} />
@@ -53,6 +89,12 @@
 
   <Button onclick={() => togglePanel("settings")} class="h-10 w-10 p-0">
     <SettingsIcon size={20} strokeWidth={2} />
+  </Button>
+  <Button
+    onclick={() => document.body.requestFullscreen()}
+    class="h-10 w-10 p-0"
+  >
+    <Expand size={20} strokeWidth={2} />
   </Button>
 </div>
 

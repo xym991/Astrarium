@@ -1,5 +1,14 @@
 import type { CameraMode } from ".";
 import type { CelestialBody } from "../engine/CelestialBody";
+import type {
+  MouseState,
+  MovementState,
+} from "../engine/Input/inputController";
+import {
+  defaultMouseState,
+  defaultMovementState,
+} from "../engine/Input/inputController";
+import InputController from "../engine/Input/inputController";
 
 export interface TelemetryState {
   currentTime: number;
@@ -7,6 +16,8 @@ export interface TelemetryState {
   focusedBody: CelestialBody | null;
   timeScale: number;
   cameraMode: CameraMode;
+  mouseState: MouseState;
+  movementState: MovementState;
 }
 
 class Telemetry {
@@ -19,6 +30,8 @@ class Telemetry {
     focusedBody: null,
     timeScale: 1,
     cameraMode: "overview",
+    mouseState: defaultMouseState,
+    movementState: defaultMovementState,
   });
 
   private constructor() {}

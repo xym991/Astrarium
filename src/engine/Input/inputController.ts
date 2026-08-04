@@ -1,4 +1,4 @@
-const movementState = {
+export const defaultMovementState = {
   forward: false,
   backward: false,
   left: false,
@@ -6,7 +6,7 @@ const movementState = {
   up: false,
   down: false,
 };
-const mouseState = {
+export const defaultMouseState = {
   primaryMouse: false,
   secondaryMouse: false,
   mouseDeltaX: 0,
@@ -15,9 +15,12 @@ const mouseState = {
   isCaptured: false,
 };
 
+export type MouseState = typeof defaultMouseState;
+export type MovementState = typeof defaultMovementState;
+
 export type InputState = {
-  movement: typeof movementState;
-  mouse: typeof mouseState;
+  movement: MovementState;
+  mouse: MouseState;
 };
 
 export const defaultBindings = {
@@ -25,8 +28,8 @@ export const defaultBindings = {
   moveBackward: "KeyS",
   moveLeft: "KeyA",
   moveRight: "KeyD",
-  moveUp: "KeyQ",
-  moveDown: "KeyE",
+  moveUp: "Space",
+  moveDown: "ShiftLeft",
 
   showOrbits: "KeyO",
   showTrails: "KeyT",
@@ -56,14 +59,14 @@ export type InputAction = keyof typeof defaultBindings;
 
 type BindingState = {
   binding: string;
-  pressed: boolean;
+  active: boolean;
   toggled: boolean;
 };
 
 class InputController {
   private canvas: HTMLCanvasElement;
-  private movementState: typeof movementState;
-  private mouseState: typeof mouseState;
+  private movementState: typeof defaultMovementState;
+  private mouseState: typeof defaultMouseState;
   private lastTouchX = 0;
   private lastTouchY = 0;
   private lastPinchDistance = 0;
@@ -72,7 +75,7 @@ class InputController {
   private keyLookup: Record<string, InputAction> = {};
   private subscribers = new Map<
     InputAction,
-    Set<(key: string, state: { pressed: boolean; toggled: boolean }) => void>
+    Set<(key: string, state: { active: boolean; toggled: boolean }) => void>
   >();
 
   static instance: InputController;
@@ -89,13 +92,13 @@ class InputController {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.movementState = { ...movementState };
-    this.mouseState = { ...mouseState, isCaptured: false };
+    this.movementState = { ...defaultMovementState };
+    this.mouseState = { ...defaultMouseState };
 
     for (const action in defaultBindings) {
       this.keyBindings[action as InputAction] = {
         binding: defaultBindings[action as InputAction],
-        pressed: false,
+        active: false,
         toggled: false,
       };
     }
@@ -103,9 +106,7 @@ class InputController {
     this.loadConfig();
     this.rebuildLookup();
     this.initialiseListeners();
-    this.subscribe("releasePointerLock", (_, state) => {
-      this.enforcePointerLock();
-    });
+    this.handleInternalSubscriptions();
     console.log("input controller initialised");
   }
 
@@ -155,7 +156,7 @@ class InputController {
     action: InputAction,
     callback: (
       key: string,
-      state: { pressed: boolean; toggled: boolean },
+      state: { active: boolean; toggled: boolean },
     ) => void,
   ) {
     if (!this.subscribers.has(action)) {
@@ -284,42 +285,45 @@ class InputController {
     if (!action) return;
 
     const bindingState = this.keyBindings[action];
-    bindingState.pressed = val;
-    if (val) {
-      bindingState.toggled = !bindingState.toggled;
-    }
 
-    // Map movement actions to movementState for compatibility
-    switch (action) {
-      case "moveForward":
-        this.movementState.forward = val;
-        break;
-      case "moveBackward":
-        this.movementState.backward = val;
-        break;
-      case "moveLeft":
-        this.movementState.left = val;
-        break;
-      case "moveRight":
-        this.movementState.right = val;
-        break;
-      case "moveUp":
-        this.movementState.up = val;
-        break;
-      case "moveDown":
-        this.movementState.down = val;
-        break;
+    this.setActive(action, val);
+    if (val) {
+      this.setToggled(action, !bindingState.toggled);
     }
 
     const subs = this.subscribers.get(action);
     if (subs) {
       for (const cb of subs) {
         cb(bindingState.binding, {
-          pressed: bindingState.pressed,
+          active: bindingState.active,
           toggled: bindingState.toggled,
         });
       }
     }
+  }
+
+  private handleInternalSubscriptions() {
+    this.subscribe("moveForward", (binding, state) => {
+      this.movementState.forward = state.active;
+    });
+    this.subscribe("moveBackward", (binding, state) => {
+      this.movementState.backward = state.active;
+    });
+    this.subscribe("moveLeft", (binding, state) => {
+      this.movementState.left = state.active;
+    });
+    this.subscribe("moveRight", (binding, state) => {
+      this.movementState.right = state.active;
+    });
+    this.subscribe("moveUp", (binding, state) => {
+      this.movementState.up = state.active;
+    });
+    this.subscribe("moveDown", (binding, state) => {
+      this.movementState.down = state.active;
+    });
+    this.subscribe("releasePointerLock", () => {
+      this.enforcePointerLock();
+    });
   }
 
   private handleMouseClick(button: number, val: boolean) {
@@ -333,10 +337,6 @@ class InputController {
 
   public capturePointer() {
     this.pointerCaptured = true;
-
-    if (document.pointerLockElement !== this.canvas) {
-      this.canvas.requestPointerLock();
-    }
   }
 
   public releasePointer() {
@@ -349,7 +349,7 @@ class InputController {
 
   private enforcePointerLock() {
     if (this.pointerCaptured) {
-      if (!this.keyBindings.releasePointerLock.pressed) {
+      if (!this.keyBindings.releasePointerLock.active) {
         if (document.pointerLockElement !== this.canvas) {
           this.canvas.requestPointerLock();
         }
@@ -363,6 +363,15 @@ class InputController {
 
   public isPointerCaptured() {
     return this.mouseState.isCaptured;
+  }
+
+  public setActive(action: InputAction, active: boolean = true) {
+    this.keyBindings[action].active = active;
+  }
+
+  public setToggled(action: InputAction, toggled?: boolean) {
+    this.keyBindings[action].toggled =
+      toggled ?? !this.keyBindings[action].toggled;
   }
 
   public endFrame() {

@@ -67,6 +67,8 @@ export default class Engine {
       focusedBody: AppState.get("focusedBody"),
       timeScale: AppState.get("timeScale"),
       cameraMode: AppState.get("cameraMode"),
+      mouseState: this.inputController.getMouse(),
+      movementState: this.inputController.getMovement(),
     });
 
     if (AppState.isDirty("cameraMode"))
@@ -382,7 +384,7 @@ export default class Engine {
       key: K,
     ) => {
       input.subscribe(key, (_, state) => {
-        if (!state.pressed) return;
+        if (!state.active) return;
         AppState.set(key, !AppState.get(key));
       });
     };
@@ -408,7 +410,7 @@ export default class Engine {
 
     for (const [action, index] of Object.entries(focus)) {
       input.subscribe(action as any, (_, state) => {
-        if (!state.pressed) return;
+        if (!state.active) return;
 
         if (index === 0) {
           AppState.set("focusedBody", this.SolarSystem);
