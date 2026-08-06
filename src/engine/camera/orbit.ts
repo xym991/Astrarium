@@ -5,6 +5,7 @@ import { getBodyWorldPosition } from "./shared";
 import type Clock from "../clock";
 import type InputController from "../Input/inputController";
 import MovementController from "./movementController";
+import { DISTANCE_SCALE } from "../../data/constants";
 export class OrbitController extends MovementController {
   private yaw = 0;
   private pitch = THREE.MathUtils.degToRad(30);
@@ -82,9 +83,7 @@ export class OrbitController extends MovementController {
       .normalize();
 
     const moveSpeed =
-      (focusedBody.radius * AppState.get("distanceScale") + this.altitude) *
-      delta *
-      0.001;
+      (focusedBody.radius * DISTANCE_SCALE + this.altitude) * delta * 0.001;
 
     if (movement.forward)
       this.offset.add(forward.clone().multiplyScalar(-moveSpeed));
@@ -98,8 +97,7 @@ export class OrbitController extends MovementController {
     if (movement.left)
       this.offset.add(right.clone().multiplyScalar(-moveSpeed));
 
-    const radius =
-      focusedBody.radius * AppState.get("distanceScale") + this.altitude;
+    const radius = focusedBody.radius * DISTANCE_SCALE + this.altitude;
     this.offset.setLength(radius);
     const center = getBodyWorldPosition(focusedBody);
     camera.position.copy(center.clone().add(this.offset));
@@ -108,7 +106,7 @@ export class OrbitController extends MovementController {
     body: CelestialBody,
     camera: THREE.PerspectiveCamera,
   ) {
-    const radius = body.radius * AppState.get("distanceScale");
+    const radius = body.radius * DISTANCE_SCALE;
 
     this.altitude = radius * 0.5;
     this.minAltitude = Math.max(radius * 0.2, 0.0001);

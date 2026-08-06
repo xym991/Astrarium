@@ -132,8 +132,8 @@ export default {
       }
 
       sunDir
-        .copy(body.parent!.worldPosition)
-        .sub(body.worldPosition)
+        .copy(body.parent!.cached.worldPosition)
+        .sub(body.cached.worldPosition)
         .normalize();
 
       body.tiltGroup.getWorldQuaternion(worldQuat);
@@ -149,7 +149,7 @@ export default {
     let atmosphere: THREE.Mesh | null = null;
 
     createAtmosphere(body, "/textures/earth_atmosphere.jpg", 1.001, (mesh) => {
-      (mesh.material as THREE.MeshStandardMaterial).opacity = 0.9;
+      // (mesh.material as THREE.MeshStandardMaterial).opacity = 0.9;
       atmosphere = mesh;
       atmosphere.userData = body;
     });
@@ -174,8 +174,8 @@ export default {
   venus: (body: CelestialBody) => {
     let atmosphere: THREE.Mesh | null = null;
 
-    createAtmosphere(body, "/textures/venus_atmosphere.jpg", 1.005, (mesh) => {
-      (mesh.material as THREE.MeshStandardMaterial).opacity = 1.3;
+    createAtmosphere(body, "/textures/venus_atmosphere.jpg", 1.0025, (mesh) => {
+      (mesh.material as THREE.MeshStandardMaterial).opacity = 1.75;
       atmosphere = mesh;
       atmosphere.userData = body;
     });

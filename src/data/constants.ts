@@ -1,3 +1,4 @@
 export const MAX_SOLAR_DRIFT_DISTANCE = 50000;
 export const SOLAR_GALACTIC_SPEED = 19_008_000; // km/day
 export const SIMULATION_RADIUS = 20_000_000_000;
+export const DISTANCE_SCALE = 0.00001;

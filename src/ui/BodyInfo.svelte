@@ -5,7 +5,7 @@
 
   const body = $derived(Telemetry.get("focusedBody"));
 
-  function formatNumber(value: number, maximumFractionDigits = 1) {
+  function formatNumber(value: number, maximumFractionDigits = 4) {
     return new Intl.NumberFormat("en-US", {
       maximumFractionDigits,
     }).format(value);
@@ -16,8 +16,8 @@
 
     const prefix = days < 0 ? "−" : "";
     const value = Math.abs(days);
-    if (value < 1) return `${prefix}${formatNumber(value * 24, 1)} h`;
-    if (value < 365) return `${prefix}${formatNumber(value, 1)} d`;
+    if (value < 1) return `${prefix}${formatNumber(value * 24, 3)} h`;
+    if (value < 365) return `${prefix}${formatNumber(value, 3)} d`;
     return `${prefix}${formatNumber(value / 365.25, 2)} yr`;
   }
 
@@ -33,8 +33,8 @@
     aria-label="Selected celestial body"
   >
     <header class="flex items-start justify-between gap-3 border-(--primary)">
-      <div class="min-w-0 flex items-start justify-start flex-col gap-1">
-        <div class="text-xs tracking-[0.16em] text-white uppercase">
+      <div class="min-w-0 flex items-start justify-start flex-col gap-0.5">
+        <div class="text-[0.66rem] tracking-[0.16em] text-white uppercase">
           {body.type}
         </div>
         <div class="flex items-center gap-2 justify-start">
@@ -58,7 +58,7 @@
       </Button>
     </header>
 
-    <dl class="grid grid-cols-2 gap-2 lg:grid-cols-3 pt-3">
+    <dl class="grid grid-cols-2 gap-2 lg:grid-cols-3 pt-1 lg:pt-3">
       {#each [{ label: "Radius", value: `${formatNumber(body.radius)} km` }, { label: "Semi-Major Axis", value: formatDistance(body.semiMajorAxis) }, { label: "Orbital Period", value: formatDuration(body.orbitalPeriod) }, { label: "Rotation Period", value: formatDuration(body.rotationPeriod) }, { label: "Axial Tilt", value: `${formatNumber(body.axisTilt, 2)}°` }, { label: "Orbit Eccentricity", value: formatNumber(body.eccentricity, 4) }] as item}
         <div
           class="

@@ -6,6 +6,7 @@ import AppState from "../../state";
 import type InputController from "../Input/inputController";
 import type Clock from "../clock";
 import MovementController from "./movementController";
+import { DISTANCE_SCALE, SIMULATION_RADIUS } from "../../data/constants";
 
 export class OverviewController extends MovementController {
   private offset = new THREE.Vector3();
@@ -15,7 +16,7 @@ export class OverviewController extends MovementController {
 
   private readonly rotationSensitivity = 0.01;
   private minDistance = 2;
-  private maxDistance = 20_000_000_000 * AppState.get("distanceScale");
+  private maxDistance = SIMULATION_RADIUS * DISTANCE_SCALE;
 
   private lastFocusedBody?: CelestialBody;
 
@@ -79,7 +80,7 @@ export class OverviewController extends MovementController {
 
     this.offset.set(0, 0, this.distance).applyQuaternion(this.orientation);
 
-    const target = focusedBody.worldPosition;
+    const target = focusedBody.cached.worldPosition;
 
     camera.position.copy(target).add(this.offset);
 
@@ -92,7 +93,7 @@ export class OverviewController extends MovementController {
   ) {
     this.orientation.identity();
 
-    const radius = body.radius * AppState.get("distanceScale");
+    const radius = body.radius * DISTANCE_SCALE;
 
     this.minDistance = Math.max(radius * 1.5, 0.0005);
     camera.near = radius / 3;

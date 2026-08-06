@@ -28,10 +28,18 @@
   :root {
     font-size: 11px;
   }
+  .lucide-icon {
+    max-height: 16px;
+    max-width: 16px;
+  }
 }
 @media (max-height: 599px) {
   :root {
     font-size: 11px;
+  }
+  .lucide-icon {
+    max-height: 16px;
+    max-width: 16px;
   }
 }
 

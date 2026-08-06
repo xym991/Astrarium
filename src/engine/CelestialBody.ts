@@ -9,6 +9,7 @@ import {
   HighPrecisionLineMaterial,
 } from "three-high-precision-lines";
 import calculateOrbitalPosition from "./utils/calculateorbitalPosition";
+import { DISTANCE_SCALE } from "../data/constants";
 
 export type Trail = {
   line: HighPrecisionLine;
@@ -32,7 +33,12 @@ export class CelestialBody extends CelestialBodyData {
   public static trailMaterial = new HighPrecisionLineMaterial({
     color: new THREE.Color(0xffffff).multiplyScalar(2).convertLinearToSRGB(),
   });
-  worldPosition = new THREE.Vector3();
+  public cached = {
+    worldPosition: new THREE.Vector3(),
+    projectedRadius: 0,
+    distanceFromCamera: 0,
+    screenPosition: new THREE.Vector3(),
+  };
 
   children: CelestialBody[] = [];
   mesh: THREE.Mesh;
@@ -75,11 +81,7 @@ export class CelestialBody extends CelestialBodyData {
     this.orbitalGroup.add(this.group);
     this.orbitalPlaneGroup.add(this.orbitalGroup);
 
-    this.group.position.set(
-      this.semiMajorAxis * AppState.get("distanceScale"),
-      0,
-      0,
-    );
+    this.group.position.set(this.semiMajorAxis * DISTANCE_SCALE, 0, 0);
 
     this.orbitalPlaneGroup.rotation.order = "YXZ";
     this.orbitalGroup.rotation.order = "YXZ";
@@ -120,9 +122,7 @@ export class CelestialBody extends CelestialBodyData {
       ) => {
         pluginUpdate?.(this);
 
-        const distanceSq = camera.position.distanceToSquared(
-          this.worldPosition,
-        );
+        this.updateLOD();
 
         if (this.type === "moon") {
           if (showMoons) {
@@ -135,26 +135,27 @@ export class CelestialBody extends CelestialBodyData {
           }
         }
 
+        const cameraDistance = this.cached.distanceFromCamera;
         if (showTrails) {
           this.trail.line.visible =
             this.type == "moon"
-              ? shouldShowElement(this, distanceSq, 15, 20)
-              : shouldShowElement(this, distanceSq, 15, 0);
+              ? shouldShowElement(this, cameraDistance, 15, 20)
+              : shouldShowElement(this, cameraDistance, 15, 0);
         } else {
           this.trail.line.visible = false;
         }
         if (showOrbits) {
           this.orbit.visible =
             this.type == "moon"
-              ? shouldShowElement(this, distanceSq, 15, 20)
-              : shouldShowElement(this, distanceSq, 15, 0);
+              ? shouldShowElement(this, cameraDistance, 15, 20)
+              : shouldShowElement(this, cameraDistance, 15, 60);
         } else {
           this.orbit.visible = false;
         }
       };
     })();
 
-    const distanceScale = AppState.get("distanceScale");
+    const distanceScale = DISTANCE_SCALE;
     this.setBodyScale(distanceScale);
     this.setOrbitScale(distanceScale);
   }
@@ -164,8 +165,8 @@ export class CelestialBody extends CelestialBodyData {
     const e = this.eccentricity;
     const b = a * Math.sqrt(1 - e * e);
 
-    for (let lod = 0; lod < 7; lod++) {
-      const segments = 256 << lod;
+    for (let lod = 0; lod < 5; lod++) {
+      const segments = 1024 << lod;
       const positions: number[] = [];
 
       for (let i = 0; i <= segments; i++) {
@@ -186,10 +187,10 @@ export class CelestialBody extends CelestialBodyData {
 
     const material = new HighPrecisionLineMaterial({
       color: new THREE.Color(this.type === "planet" ? this.color : 0x555555)
-        .multiplyScalar(15)
+        .multiplyScalar(6)
         .convertLinearToSRGB(),
       transparent: true,
-      opacity: 0.8,
+      opacity: 1,
     });
 
     return new HighPrecisionLine(geometry, material);
@@ -258,7 +259,7 @@ export class CelestialBody extends CelestialBodyData {
     const high = trail.pointsHigh;
     const low = trail.pointsLow;
 
-    const pos = this.worldPosition;
+    const pos = this.cached.worldPosition;
 
     if (
       Math.abs(pos.x - trail.distance.x) < 0.0001 &&
@@ -338,7 +339,7 @@ export class CelestialBody extends CelestialBodyData {
   }
 
   updatePosition(time: number) {
-    const distanceScale = AppState.get("distanceScale");
+    const distanceScale = DISTANCE_SCALE;
 
     //rotation
     const angle = (time / this.rotationPeriod) * Math.PI * 2;
@@ -353,16 +354,8 @@ export class CelestialBody extends CelestialBodyData {
     });
   }
 
-  updateLOD(
-    camera: THREE.PerspectiveCamera,
-    distanceScale: number,
-    focalLength: number,
-  ) {
-    const distanceSq = camera.position.distanceToSquared(this.worldPosition);
-
-    const projectedRadius =
-      (this.radius * distanceScale * focalLength) / Math.sqrt(distanceSq);
-
+  updateLOD() {
+    const projectedRadius = this.cached.projectedRadius;
     let LOD = Math.min(
       Math.floor(
         (projectedRadius / 30) * CelestialBody.SphereGeometries.length,
@@ -377,12 +370,10 @@ export class CelestialBody extends CelestialBodyData {
 
     if (!this.parent) return;
 
-    const orbitCenter = this.parent.worldPosition;
+    const cameraDistance = this.parent.cached.distanceFromCamera;
 
-    const cameraDistance = camera.position.distanceTo(orbitCenter);
-
-    const periapsis = this.orbitPeriapsis * distanceScale;
-    const apoapsis = this.orbitApoapsis * distanceScale;
+    const periapsis = this.orbitPeriapsis * DISTANCE_SCALE;
+    const apoapsis = this.orbitApoapsis * DISTANCE_SCALE;
 
     let distanceFromBand = 0;
 
@@ -392,12 +383,12 @@ export class CelestialBody extends CelestialBodyData {
       distanceFromBand = cameraDistance - apoapsis;
     }
 
-    let orbitLOD = 6;
+    let orbitLOD = 4;
 
     if (distanceFromBand > 30) {
       orbitLOD = Math.max(
         0,
-        Math.min(6, 6 - Math.floor(Math.log2((distanceFromBand - 30) / 8 + 1))),
+        Math.min(4, 4 - Math.floor(Math.log2((distanceFromBand - 30) / 8 + 1))),
       );
     }
 
@@ -405,5 +396,26 @@ export class CelestialBody extends CelestialBodyData {
       this.orbit.geometry = this.orbitGeometries[orbitLOD];
       this.orbitLOD = orbitLOD;
     }
+  }
+
+  updateCachePre() {
+    this.cached.worldPosition.setFromMatrixPosition(this.group.matrixWorld);
+  }
+
+  updateCachePost({
+    camera,
+    focalLength,
+  }: {
+    camera: THREE.Camera;
+    focalLength: number;
+  }) {
+    this.cached.distanceFromCamera = camera.position.distanceTo(
+      this.cached.worldPosition,
+    );
+    this.cached.projectedRadius =
+      (this.radius * DISTANCE_SCALE * focalLength) /
+      this.cached.distanceFromCamera;
+
+    this.cached.screenPosition.copy(this.cached.worldPosition).project(camera);
   }
 }

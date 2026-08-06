@@ -80,8 +80,13 @@ class InputController {
 
   private readonly TOUCH_ROTATION_SCALE = 2.2;
   private readonly TOUCH_SCROLL_SCALE = 1.8;
-  private readonly TOUCH_SCROLL_DECAY = 0.9;
+  private readonly TOUCH_SCROLL_DECAY = 0.92;
   private readonly TOUCH_SCROLL_THRESHOLD = 5;
+
+  private wheelVelocity = 0;
+  private readonly WHEEL_SCROLL_SCALE = 1;
+  private readonly WHEEL_DAMPING = 0.9;
+  private readonly WHEEL_THRESHOLD = 0.01;
 
   private keyBindings: Record<InputAction, BindingState> = {} as any;
   private keyLookup: Record<string, InputAction[]> = {};
@@ -210,26 +215,38 @@ class InputController {
       if (e.repeat) return;
       this.handleKeys(e.code, true);
     });
+
     window.addEventListener("keyup", (e) => {
       this.handleKeys(e.code, false);
     });
+
     this.canvas.addEventListener("mousedown", (e) => {
       this.mouseState.mode = "mouse";
       this.handleMouseClick(e.button, true);
       this.enforcePointerLock();
     });
+
     this.canvas.addEventListener("mouseup", (e) => {
       this.handleMouseClick(e.button, false);
     });
+
     this.canvas.addEventListener("mousemove", (e) => {
       this.mouseState.mode = "mouse";
       this.mouseState.mouseDeltaX += e.movementX;
       this.mouseState.mouseDeltaY += e.movementY;
     });
-    this.canvas.addEventListener("wheel", (e) => {
-      this.mouseState.mode = "mouse";
-      this.mouseState.scrollDelta = e.deltaY;
-    });
+
+    this.canvas.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        this.mouseState.mode = "mouse";
+        this.wheelVelocity +=
+          (e.deltaY * this.WHEEL_SCROLL_SCALE - this.wheelVelocity) * 0.2;
+      },
+      { passive: false },
+    );
+
     this.canvas.addEventListener(
       "touchstart",
       (e) => {
@@ -439,7 +456,14 @@ class InputController {
         this.mouseState.scrollDelta = 0;
       }
     } else {
-      this.mouseState.scrollDelta = 0;
+      if (Math.abs(this.wheelVelocity) > this.WHEEL_THRESHOLD) {
+        this.mouseState.scrollDelta = this.wheelVelocity;
+
+        this.wheelVelocity *= this.WHEEL_DAMPING;
+      } else {
+        this.wheelVelocity = 0;
+        this.mouseState.scrollDelta = 0;
+      }
     }
   }
 }

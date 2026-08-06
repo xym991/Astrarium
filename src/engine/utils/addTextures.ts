@@ -5,6 +5,7 @@ export default function addTextures(
   body: CelestialBody,
   renderer: THREE.WebGLRenderer,
 ) {
+  return;
   const path = `/textures/${body.name.toLowerCase()}`;
 
   textureLoader.load(

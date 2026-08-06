@@ -9,6 +9,7 @@ import { FlightController } from "./flight";
 import InputController from "../Input/inputController";
 import type Clock from "../clock";
 import type MovementController from "./movementController";
+import { DISTANCE_SCALE } from "../../data/constants";
 
 export default class CameraController {
   private static instance: CameraController;
@@ -24,10 +25,10 @@ export default class CameraController {
     InputController: InputController,
   ) {
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      60,
       window.innerWidth / window.innerHeight,
       0.001,
-      1_000_000,
+      2_000_000,
     );
     this.movementController = new OverviewController(
       this.camera,
@@ -57,6 +58,7 @@ export default class CameraController {
     this.movementController.update(this.camera, clock, this.inputController);
     this.inputController.endFrame();
     this.camera.updateProjectionMatrix();
+    this.camera.updateMatrixWorld(false);
   }
 
   public getCamera(): THREE.PerspectiveCamera {

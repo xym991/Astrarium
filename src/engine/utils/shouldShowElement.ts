@@ -1,17 +1,17 @@
 import type { CelestialBody } from "../CelestialBody";
-import AppState from "../../state";
+import { DISTANCE_SCALE } from "../../data/constants";
 export default function shouldShowElement(
   body: CelestialBody,
-  cameraDistanceSq: number,
+  distance: number,
   near = 100,
   far = 20,
 ): boolean {
-  const bodyRadius = body.radius * AppState.get("distanceScale");
-  const bodyOrbitalRadius = body.semiMajorAxis * AppState.get("distanceScale");
-  if (body.type === "star") return cameraDistanceSq > (bodyRadius * 100) ** 2;
+  const bodyRadius = body.radius * DISTANCE_SCALE;
+  const bodyOrbitalRadius = body.semiMajorAxis * DISTANCE_SCALE;
+  if (body.type === "star") return distance > bodyRadius * 100;
 
   return (
-    (near ? cameraDistanceSq > (bodyRadius * near) ** 2 : true) &&
-    (far ? cameraDistanceSq < (bodyOrbitalRadius * far) ** 2 : true)
+    (near ? distance > bodyRadius * near : true) &&
+    (far ? distance < bodyOrbitalRadius * far : true)
   );
 }

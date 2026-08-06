@@ -3,7 +3,7 @@ import type { InputState } from "../Input/inputController";
 
 import AppState from "../../state";
 import { celestialBodies } from "../../main";
-import { SOLAR_GALACTIC_SPEED } from "../../data/constants";
+import { SOLAR_GALACTIC_SPEED, DISTANCE_SCALE } from "../../data/constants";
 import type Clock from "../clock";
 import type InputController from "../Input/inputController";
 import MovementController from "./movementController";
@@ -20,7 +20,7 @@ export class FlightController extends MovementController {
 
   private readonly rotationSensitivity = 0.005;
 
-  private readonly distanceScale = AppState.get("distanceScale");
+  private readonly distanceScale = DISTANCE_SCALE;
   private readonly initialSpeedKm = 1_000;
   private readonly maxSpeedKm = 3_000_000_000;
 
@@ -193,7 +193,7 @@ export class FlightController extends MovementController {
 
       const collisionRadiusSq = collisionRadius * collisionRadius;
 
-      this.collisionOffset.subVectors(this.position, body.worldPosition);
+      this.collisionOffset.subVectors(this.position, body.cached.worldPosition);
 
       const distanceSq = this.collisionOffset.lengthSq();
 
@@ -208,7 +208,7 @@ export class FlightController extends MovementController {
 
       // Push camera to surface
       this.position
-        .copy(body.worldPosition)
+        .copy(body.cached.worldPosition)
         .addScaledVector(this.collisionOffset, collisionRadius);
 
       // Kill momentum
@@ -220,8 +220,7 @@ export class FlightController extends MovementController {
   }
 
   private addSolarDrift(deltaDays: number) {
-    this.position.y +=
-      SOLAR_GALACTIC_SPEED * deltaDays * AppState.get("distanceScale");
+    this.position.y += SOLAR_GALACTIC_SPEED * deltaDays * DISTANCE_SCALE;
   }
 
   exit(inputController: InputController) {
