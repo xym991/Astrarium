@@ -1,6 +1,7 @@
 import * as THREE from "three";
-import { CelestialBodyData, solarSystemData } from "../data";
+import { CelestialBodyData } from "../data";
 import { recursiveTransform } from "./utils";
+import SolarSystemData from "../data/celestialBodies";
 import { CelestialBody } from "./CelestialBody";
 import CameraController from "./camera";
 import AppState from "../state";
@@ -42,7 +43,7 @@ export default class Engine {
   declare private background: THREE.Points;
   declare private updateBackground: () => void;
 
-  private data = solarSystemData;
+  private data = SolarSystemData;
   declare private constants: {
     focalLength: number;
   };

@@ -1,0 +1,35 @@
+import { CelestialBodyData } from "../..";
+
+export default new CelestialBodyData({
+  name: "Earth",
+  ascendingNode: -11.261,
+  argumentOfPeriapsis: 114.208,
+  meanAnomalyAtEpoch: 357.517,
+  type: "planet",
+  radius: 6371.0,
+  shapeScale: [1, 0.9966, 1],
+  semiMajorAxis: 149598023,
+  eccentricity: 0.0167086,
+  orbitalPeriod: 365.256,
+  orbitalTilt: 0,
+  axisTilt: 23.44,
+  rotationPeriod: 0.99726968,
+  color: "#0099FF",
+}).addChild(
+  new CelestialBodyData({
+    name: "Moon",
+    ascendingNode: 125.045,
+    argumentOfPeriapsis: 318.063,
+    meanAnomalyAtEpoch: 115.365,
+    type: "moon",
+    radius: 1737.4,
+    shapeScale: [1, 1, 1],
+    semiMajorAxis: 384400,
+    eccentricity: 0,
+    orbitalPeriod: 27.3217,
+    orbitalTilt: 5.15,
+    axisTilt: 0,
+    rotationPeriod: 27.3217,
+    color: "#BFC2C7",
+  }),
+);
