@@ -253,7 +253,9 @@ export default class Engine {
     const radius = SIMULATION_RADIUS * DISTANCE_SCALE;
     const light = new THREE.PointLight("#FFFFFF", 20, radius);
     light.decay = 0.2;
+    // const light = new THREE.AmbientLight("#FFFFFF", 5);
     light.position.set(0, 0, 0);
+    // this.scene.add(light);
     this.SolarSystem.group.add(light);
     const light2 = new THREE.PointLight("#FFFFFF", 0.2, radius);
     this.SolarSystem.group.add(light2);
@@ -305,6 +307,8 @@ export default class Engine {
   ) {
     const body = new CelestialBody(data, parent);
     this.CelestialBodyArray.push(body);
+    // body.name === "Saturn" && addTextures(body, this.renderer);
+    // body.type === "planet" && addTextures(body, this.renderer);
     addTextures(body, this.renderer);
     for (const childData of data.children) {
       this.buildSolarSystem(childData, body);

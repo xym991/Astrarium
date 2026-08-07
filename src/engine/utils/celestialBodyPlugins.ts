@@ -175,7 +175,7 @@ export default {
     let atmosphere: THREE.Mesh | null = null;
 
     createAtmosphere(body, "/textures/venus_atmosphere.jpg", 1.0025, (mesh) => {
-      (mesh.material as THREE.MeshStandardMaterial).opacity = 1.75;
+      (mesh.material as THREE.MeshStandardMaterial).opacity = 1.6;
       atmosphere = mesh;
       atmosphere.userData = body;
     });
